@@ -53,7 +53,7 @@ CREATE POLICY "Categories are readable by all authenticated users"
   USING (true);
 
 -- ============================================================
--- groups
+-- groups (RLS policies are added after group_members exists)
 -- ============================================================
 CREATE TABLE public.groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -63,6 +63,19 @@ CREATE TABLE public.groups (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- ============================================================
+-- group_members
+-- ============================================================
+CREATE TABLE public.group_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role group_role NOT NULL DEFAULT 'member',
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (group_id, user_id)
+);
+
+-- Policies on groups reference group_members — must run after both tables exist
 ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Group members can view their groups"
@@ -96,18 +109,6 @@ CREATE POLICY "Group admins can delete their groups"
       WHERE gm.group_id = id AND gm.user_id = auth.uid() AND gm.role = 'admin'
     )
   );
-
--- ============================================================
--- group_members
--- ============================================================
-CREATE TABLE public.group_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role group_role NOT NULL DEFAULT 'member',
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (group_id, user_id)
-);
 
 ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;
 
