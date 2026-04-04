@@ -1,3 +1,4 @@
+import { format, subDays } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./summary-cards";
 import { SpendingChart } from "./spending-chart";
@@ -16,17 +17,22 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  // Fetch personal expenses for current month
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    .toISOString()
-    .split("T")[0];
+  const startOfMonth = format(
+    new Date(now.getFullYear(), now.getMonth(), 1),
+    "yyyy-MM-dd"
+  );
+  const endOfMonth = format(
+    new Date(now.getFullYear(), now.getMonth() + 1, 0),
+    "yyyy-MM-dd"
+  );
+
+  const weekStartStr = format(subDays(now, 6), "yyyy-MM-dd");
+  const weekEndStr = format(now, "yyyy-MM-dd");
 
   const [
     { data: personalExpenses },
+    { data: weekPersonalExpenses },
     { data: recentExpenses },
     { data: groups },
     { data: owedToMe },
@@ -43,10 +49,16 @@ export default async function DashboardPage() {
       .lte("date", endOfMonth),
     supabase
       .from("expenses")
+      .select("amount, date")
+      .eq("payer_id", user.id)
+      .is("group_id", null)
+      .gte("date", weekStartStr)
+      .lte("date", weekEndStr),
+    supabase
+      .from("expenses")
       .select("*, categories(*), profiles!expenses_payer_id_fkey(*)")
-      .or(`payer_id.eq.${user.id},group_id.not.is.null`)
       .order("date", { ascending: false })
-      .limit(5),
+      .limit(20),
     supabase
       .from("group_members")
       .select("group_id, groups(*)")
@@ -89,16 +101,15 @@ export default async function DashboardPage() {
   const totalIOwe = (iOwe || []).reduce((sum, s) => sum + s.owed_amount, 0);
   const netWorth = totalOwedToMe - totalIOwe;
 
-  // Compute weekly spending for the bar chart
+  const weekRows = weekPersonalExpenses || [];
   const weeklyData = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    const dayStr = d.toISOString().split("T")[0];
-    const dayExpenses = (recentExpenses || [])
-      .filter((e) => e.date === dayStr && !e.group_id)
+    const d = subDays(now, 6 - i);
+    const dayStr = format(d, "yyyy-MM-dd");
+    const dayExpenses = weekRows
+      .filter((e) => e.date === dayStr)
       .reduce((sum, e) => sum + e.amount, 0);
     return {
-      day: d.toLocaleDateString("en-US", { weekday: "short" }),
+      day: format(d, "EEE"),
       amount: dayExpenses,
     };
   });
@@ -126,7 +137,9 @@ export default async function DashboardPage() {
             accounts={(userAccounts || []) as Account[]}
           />
           <ActiveGroups
-            groups={(groups || []).map((g) => g.groups as unknown as Group).filter(Boolean)}
+            groups={(groups || [])
+              .map((g) => g.groups as unknown as Group)
+              .filter(Boolean)}
           />
           <PendingSettlements
             settlements={(pendingSettlements || []) as unknown as Settlement[]}

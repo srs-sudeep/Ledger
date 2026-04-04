@@ -22,31 +22,41 @@ class GroupsScreen extends ConsumerWidget {
           children: [
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Groups',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'All your groups—tap one for members & expenses',
-                      style:
-                          TextStyle(color: AppColors.secondary, fontSize: 14),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Groups',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'All your groups—tap one for members & expenses',
+                        style: const TextStyle(
+                          color: AppColors.secondary,
+                          fontSize: 14,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _showCreateGroupDialog(context, ref),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Create'),
                   style: ElevatedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     textStyle: const TextStyle(fontSize: 13),
+                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               ],
@@ -142,6 +152,8 @@ class GroupsScreen extends ConsumerWidget {
                                       color: AppColors.secondary,
                                       fontSize: 12,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
