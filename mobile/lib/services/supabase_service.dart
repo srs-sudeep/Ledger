@@ -197,11 +197,33 @@ class SupabaseService {
   }
 
   static Future<List<GroupMember>> getGroupMembers(String groupId) async {
-    final data = await client
+    // FK is user_id -> auth.users, not profiles; embed profiles(*) does not resolve.
+    final rows = await client
         .from('group_members')
-        .select('*, profiles(*)')
-        .eq('group_id', groupId);
-    return (data as List).map((e) => GroupMember.fromJson(e)).toList();
+        .select('id, group_id, user_id, role, joined_at')
+        .eq('group_id', groupId)
+        .order('joined_at', ascending: true);
+
+    final list = List<Map<String, dynamic>>.from(rows as List);
+    if (list.isEmpty) return [];
+
+    final ids = list.map((r) => r['user_id'] as String).toList();
+    final profilesData =
+        await client.from('profiles').select().inFilter('id', ids);
+
+    final profilesList =
+        List<Map<String, dynamic>>.from(profilesData as List);
+    final byId = {
+      for (final p in profilesList) p['id'] as String: p,
+    };
+
+    return list.map((row) {
+      final uid = row['user_id'] as String;
+      final merged = Map<String, dynamic>.from(row);
+      final p = byId[uid];
+      if (p != null) merged['profiles'] = p;
+      return GroupMember.fromJson(merged);
+    }).toList();
   }
 
   static Future<void> addGroupExpense({

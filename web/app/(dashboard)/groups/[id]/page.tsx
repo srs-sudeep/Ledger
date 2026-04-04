@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchGroupMembersWithProfiles } from "@/lib/supabase/fetch-group-members";
 import { notFound } from "next/navigation";
 import { GroupHeader } from "./group-header";
 import { GroupExpenses } from "./group-expenses";
@@ -20,16 +21,13 @@ export default async function GroupDetailPage({
 
   const [
     { data: group },
-    { data: members },
+    members,
     { data: expenses },
     { data: categories },
     { data: currentMembership },
   ] = await Promise.all([
     supabase.from("groups").select("*").eq("id", params.id).single(),
-    supabase
-      .from("group_members")
-      .select("*, profiles(*)")
-      .eq("group_id", params.id),
+    fetchGroupMembersWithProfiles(supabase, params.id),
     supabase
       .from("expenses")
       .select("*, categories(*), profiles!expenses_payer_id_fkey(*), expense_splits(*)")

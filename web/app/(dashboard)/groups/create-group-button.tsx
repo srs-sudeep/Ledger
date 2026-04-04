@@ -25,12 +25,14 @@ export function CreateGroupButton({ userId }: CreateGroupButtonProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState("custom");
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
   const router = useRouter();
   const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormError("");
 
     const { data: group, error } = await supabase
       .from("groups")
@@ -39,11 +41,21 @@ export function CreateGroupButton({ userId }: CreateGroupButtonProps) {
       .single();
 
     if (!error && group) {
-      await supabase.from("group_members").insert({
-        group_id: group.id,
-        user_id: userId,
-        role: "admin",
-      });
+      const { error: memberError } = await supabase
+        .from("group_members")
+        .insert({
+          group_id: group.id,
+          user_id: userId,
+          role: "admin",
+        });
+
+      if (memberError) {
+        setFormError(
+          "Group was created but you could not be added as admin. Try opening the group from the list or contact support."
+        );
+        setLoading(false);
+        return;
+      }
 
       setOpen(false);
       setName("");
@@ -89,6 +101,12 @@ export function CreateGroupButton({ userId }: CreateGroupButtonProps) {
                 { value: "home", label: "Home / Apartment" },
               ]}
             />
+
+            {formError && (
+              <p className="text-xs text-error bg-error-container/20 rounded-lg px-3 py-2">
+                {formError}
+              </p>
+            )}
 
             <div className="flex gap-3 pt-2">
               <Button
