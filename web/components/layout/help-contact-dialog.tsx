@@ -1,6 +1,7 @@
 "use client";
 
 import { Mail, Phone, Globe, User } from "lucide-react";
+import { SITE_NAME } from "@/lib/site";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,7 @@ export function HelpContactDialog({
         <DialogHeader>
           <DialogTitle>Help & contact</DialogTitle>
           <p className="text-sm text-secondary">
-            Reach out if you need support or have feedback about The Ledger.
+            Reach out if you need support or have feedback about {SITE_NAME}.
           </p>
         </DialogHeader>
 

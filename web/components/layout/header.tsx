@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { SITE_NAME } from "@/lib/site";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -18,7 +19,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-outline/10 bg-surface-container-low/80 px-8 py-4 backdrop-blur-xl">
       <span className="font-headline text-xl font-black tracking-tight text-on-surface">
-        The Ledger
+          {SITE_NAME}
       </span>
       <Button
         type="button"

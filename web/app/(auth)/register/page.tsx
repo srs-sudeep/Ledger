@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { SITE_NAME } from "@/lib/site";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -76,7 +77,7 @@ export default function RegisterPage() {
           Create your account
         </h1>
         <p className="text-secondary text-sm">
-          Start tracking expenses with The Ledger
+          Start tracking expenses with {SITE_NAME}
         </p>
       </div>
 

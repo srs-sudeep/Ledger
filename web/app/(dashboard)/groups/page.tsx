@@ -26,10 +26,10 @@ export default async function GroupsPage() {
     .map((m) => {
       const raw = m.groups as unknown as GroupWithEmbed | null;
       if (!raw) return null;
-      const memberCount = raw.group_members?.[0]?.count ?? 0;
-      const { group_members: _, ...g } = raw;
+      const { group_members, ...rest } = raw;
+      const memberCount = group_members?.[0]?.count ?? 0;
       return {
-        ...g,
+        ...rest,
         role: m.role as GroupRole,
         memberCount,
       };

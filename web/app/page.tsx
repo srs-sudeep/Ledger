@@ -6,7 +6,9 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { JsonLd } from "@/components/seo/json-ld";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,25 +22,25 @@ const features = [
     icon: Wallet,
     title: "Personal ledger",
     description:
-      "Track spending by category, set budgets, and keep private transactions in one place.",
+      "Categories, budgets, accounts, and income—your private money story in one calm view.",
   },
   {
     icon: Users,
     title: "Group splits",
     description:
-      "Share trips and household costs with Splitwise-style groups and fair splits.",
+      "Trips, rent, dinners—invite by email, split fairly, same person in many groups.",
   },
   {
     icon: PieChart,
     title: "Analytics",
     description:
-      "See trends, burn rate, and how personal spend compares to group activity.",
+      "Burn rate, trends, and personal vs group—so you see where cash actually goes.",
   },
   {
     icon: Scale,
     title: "Settle up",
     description:
-      "Simplify who owes whom with debt simplification—fewer transfers, same balances.",
+      "Debt simplification cuts noise: fewer payments, identical balances, less awkward math.",
   },
 ] as const;
 
@@ -50,6 +52,7 @@ export default async function Home() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      <JsonLd />
       <div
         className="pointer-events-none absolute inset-0 -z-10"
         aria-hidden
@@ -63,8 +66,9 @@ export default async function Home() {
         <Link
           href="/"
           className="font-headline text-xl font-extrabold tracking-tight text-on-surface"
+          aria-label={`${SITE_NAME} home`}
         >
-          The Ledger
+          {SITE_NAME}
         </Link>
         <nav className="flex items-center gap-3">
           {user ? (
@@ -95,7 +99,7 @@ export default async function Home() {
         <section className="mx-auto max-w-6xl px-6 pb-20 pt-8 md:px-8 md:pb-28 md:pt-12">
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 inline-flex items-center rounded-full border border-outline/20 bg-surface-container-lowest/80 px-3 py-1 text-xs font-medium text-secondary shadow-ambient backdrop-blur-sm">
-              Personal finance · Group expense sharing
+              {SITE_TAGLINE.split("—")[0].trim()}
             </p>
             <h1 className="font-headline text-4xl font-extrabold leading-[1.1] tracking-tight text-on-surface md:text-5xl lg:text-6xl">
               One ledger for{" "}
@@ -103,8 +107,10 @@ export default async function Home() {
               <span className="text-surface-tint">crew</span>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-secondary md:text-lg">
-              Track personal expenses, split bills with groups, and settle balances
-              without spreadsheets—built on a modern stack you can run yourself.
+              {SITE_TAGLINE.includes("—")
+                ? SITE_TAGLINE.split("—")[1]?.trim()
+                : SITE_TAGLINE}{" "}
+              Self-host with Supabase—your data stays yours.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               {user ? (
@@ -200,7 +206,9 @@ export default async function Home() {
       </main>
 
       <footer className="border-t border-outline/10 py-8 text-center text-xs text-on-surface-variant">
-        <p>© {new Date().getFullYear()} The Ledger. Built for clarity, not clutter.</p>
+        <p>
+          © {new Date().getFullYear()} {SITE_NAME}. Built for clarity, not clutter.
+        </p>
       </footer>
     </div>
   );

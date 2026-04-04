@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { cn, getInitials } from "@/lib/utils";
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -15,6 +16,8 @@ const sizeClasses = {
   md: "w-10 h-10 text-sm",
   lg: "w-12 h-12 text-base",
 };
+
+const sizePx = { sm: 32, md: 40, lg: 48 } as const;
 
 export function Avatar({
   src,
@@ -36,10 +39,13 @@ export function Avatar({
       {...props}
     >
       {src && !imgError ? (
-        <img
+        <Image
           src={src}
           alt={alt || "Avatar"}
+          width={sizePx[size]}
+          height={sizePx[size]}
           className="w-full h-full object-cover"
+          unoptimized
           onError={() => setImgError(true)}
         />
       ) : (

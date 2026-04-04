@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { HelpContactDialog } from "@/components/layout/help-contact-dialog";
+import { SITE_NAME, SITE_UI_TAGLINE } from "@/lib/site";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -60,10 +61,10 @@ export function Sidebar() {
       <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container-low flex flex-col py-8 px-4 z-50">
         <div className="mb-10 px-2">
           <h1 className="text-lg font-bold text-on-surface font-headline tracking-tight">
-            The Ledger
+            {SITE_NAME}
           </h1>
           <p className="text-[10px] text-secondary font-medium tracking-wide uppercase">
-            Financial Platform
+            {SITE_UI_TAGLINE}
           </p>
         </div>
 
