@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 # Groups
@@ -25,7 +25,11 @@ The `/groups/[id]` page has two columns:
 ### Right Column
 
 - **Members**: list with role badges (admin/member), invite button, remove button (admin only)
-- **Settle Up**: calls the `debt-simplifier` Edge Function and displays simplified transactions
+- **Settle Up**: calls the `debt-simplifier` Edge Function and displays simplified transactions with the group's currency
+
+## Currency
+
+Each group has a `currency` field (defaults to `'USD'`). Group expenses and settlements inherit the group's currency. The currency is displayed in the settle-up results and throughout the group detail page using `Intl.NumberFormat`.
 
 ## Inviting Members
 
@@ -44,5 +48,5 @@ The invited user must have already registered. There is no email invitation syst
 | Type | Behavior |
 |------|----------|
 | **Equal** | Total divided evenly among all members (remainder goes to first member) |
-| **Exact** | Each member's share entered manually in dollars |
+| **Exact** | Each member's share entered manually in the group's currency |
 | **Percentage** | Each member's percentage entered; applied to total |

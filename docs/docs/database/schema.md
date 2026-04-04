@@ -80,6 +80,7 @@ Records of money earned / deposited.
 | `user_id` | UUID (FK) | |
 | `account_id` | UUID (FK, nullable) | Which account it goes into |
 | `amount` | INTEGER | Cents |
+| `currency` | TEXT | Default `'USD'`; inherits from linked account |
 | `source` | TEXT | e.g. "Salary" |
 | `date` | DATE | |
 | `notes` | TEXT | |
@@ -91,6 +92,7 @@ Records of money earned / deposited.
 | `id` | UUID (PK) | |
 | `name` | TEXT | |
 | `type` | `group_type` ENUM | trip, home, custom |
+| `currency` | TEXT | Default `'USD'`; group ledger currency |
 | `created_by` | UUID (FK) | |
 
 ### group_members
@@ -136,6 +138,14 @@ Records of money earned / deposited.
 | `from_user_id` | UUID (FK) | |
 | `to_user_id` | UUID (FK) | |
 | `amount` | INTEGER | Cents |
+| `currency` | TEXT | Default `'USD'`; matches group currency |
 | `group_id` | UUID (FK) | |
 | `status` | `settlement_status` ENUM | pending, completed |
 | `settled_at` | TIMESTAMPTZ | |
+
+## Migration 00003: Currency Columns
+
+`supabase/migrations/00003_currency_columns.sql` adds `currency TEXT NOT NULL DEFAULT 'USD'` to the `groups`, `settlements`, and `income` tables. Existing rows are backfilled:
+
+- **settlements**: currency set from the related group's currency
+- **income**: currency set from the linked account's currency (rows with no linked account keep the `'USD'` default)

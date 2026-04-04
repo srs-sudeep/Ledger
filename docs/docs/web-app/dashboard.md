@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # Dashboard
@@ -7,6 +7,17 @@ sidebar_position: 3
 Route: `/dashboard`
 
 The dashboard provides a unified overview of the user's financial state.
+
+## Header
+
+The dashboard header displays **"The Ledger"** title on the left and a **"Sign out"** button on the right. The sign-out action is also available in the sidebar navigation.
+
+## Sidebar
+
+The sidebar provides navigation to all dashboard routes. It also includes:
+
+- **Help** button -- opens a modal dialog showing developer contact information (Sudeep Ranjan Sahoo, email, phone numbers, and website [iamsrs.com](https://iamsrs.com))
+- **Sign out** button
 
 ## Components
 
@@ -19,6 +30,8 @@ The dashboard provides a unified overview of the user's financial state.
 | `ActiveGroups` | User's active groups |
 | `PendingSettlements` | Unsettled debts |
 | `InsightCard` | Contextual financial tip |
+
+All monetary values throughout the dashboard are formatted using `Intl.NumberFormat` with the user's `default_currency` from their profile (provided by `CurrencyProvider`).
 
 ## Data Flow
 

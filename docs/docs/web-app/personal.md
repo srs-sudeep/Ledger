@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # Personal Expenses
@@ -20,17 +20,17 @@ Track individual spending with a filterable data table and budget progress bars.
 
 Fields:
 - **Description** (required)
-- **Amount** in dollars (converted to cents on submit)
+- **Amount** -- label dynamically shows the user's currency, e.g. "Amount (INR)" or "Amount (USD)" (converted to cents on submit)
 - **Category** dropdown (from seeded categories)
 - **Pay from** account (optional, updates account balance)
 - **Date** (defaults to today)
 - **Notes** (optional)
 
-Personal expenses have `group_id = NULL` in the database.
+The currency stored on each personal expense comes from the user's `default_currency` profile setting. Personal expenses have `group_id = NULL` in the database.
 
 ## Expense Table
 
 - Search by title or category name
 - Sort by date (default), amount, or title
 - Ascending/descending toggle
-- Amounts shown as negative values (money spent)
+- Amounts formatted with the user's default currency via `Intl.NumberFormat`

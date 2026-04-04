@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Accounts
@@ -23,7 +23,8 @@ The Accounts page lets users manage their financial accounts and track income.
 
 ### Account Management
 
-- Add accounts with name, type, starting balance, and color
+- Add accounts with name, type, starting balance, currency, and color
+- The Add Account form includes a **currency picker** so each account can have its own currency
 - Set a default account
 - Delete accounts
 - View total balance across all accounts
@@ -32,6 +33,7 @@ The Accounts page lets users manage their financial accounts and track income.
 
 - Record income with source, amount, and date
 - Optionally deposit into a specific account (auto-updates balance)
+- When an account is selected, the income form inherits the **currency from that account** and stores it on the income row
 - View recent income history
 
 ### Expense Integration

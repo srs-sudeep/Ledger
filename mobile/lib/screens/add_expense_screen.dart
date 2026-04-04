@@ -18,6 +18,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   bool _isGroup = false;
   String _amount = '0';
   String? _selectedCategoryId;
+  String? _selectedAccountId;
   final _titleController = TextEditingController();
   bool _loading = false;
 
@@ -66,6 +67,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     final cents = (parsed * 100).round();
     final date = DateTime.now().toIso8601String().split('T').first;
+    final profile = ref.read(profileProvider).value;
+    final currency = profile?.defaultCurrency ?? 'USD';
 
     try {
       if (_isGroup && widget.groupId != null) {
@@ -96,11 +99,16 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           amount: cents,
           categoryId: _selectedCategoryId,
           date: date,
+          currency: currency,
+          accountId: _selectedAccountId,
         );
       }
 
       ref.invalidate(personalExpensesProvider);
       ref.invalidate(recentExpensesProvider);
+      if (_selectedAccountId != null) {
+        ref.invalidate(accountsProvider);
+      }
 
       if (mounted) context.pop();
     } catch (_) {
@@ -113,6 +121,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(categoriesProvider);
+    final accounts = ref.watch(accountsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -250,9 +259,47 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                   onChanged: (v) => setState(() => _selectedCategoryId = v),
                 ),
                 loading: () => const SizedBox(height: 48),
-                error: (_, _) => const SizedBox(),
+                error: (e, _) => const SizedBox(),
               ),
             ),
+
+            // Account picker (personal expenses only, when accounts exist)
+            if (!_isGroup)
+              accounts.when(
+                data: (accs) => accs.isEmpty
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        child: DropdownButtonFormField<String>(
+                          initialValue: _selectedAccountId,
+                          decoration: InputDecoration(
+                            hintText: 'Pay from account (optional)',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                          ),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('No account'),
+                            ),
+                            ...accs.map((a) => DropdownMenuItem(
+                                  value: a.id,
+                                  child: Text(
+                                      '${a.name} (${a.formattedBalance})'),
+                                )),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _selectedAccountId = v),
+                        ),
+                      ),
+                loading: () => const SizedBox(),
+                error: (e, _) => const SizedBox(),
+              ),
 
             const Spacer(),
 

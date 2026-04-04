@@ -50,12 +50,16 @@ graph LR
 
 ## Key Features
 
+- **Landing Page** -- public marketing page with hero, features, and auth-aware CTAs
 - **Personal Expense Tracking** -- filterable data table, category budgets
 - **Accounts Ledger** -- bank accounts, credit/debit cards, wallets (GPay, PayPal, cash)
 - **Income Tracking** -- record earnings deposited into accounts
 - **Group Expense Sharing** -- equal/exact/percentage splits
 - **Debt Simplification** -- min cash flow algorithm via Edge Function
+- **Multi-Currency Support** -- per-user default currency, per-entity currency columns, `Intl.NumberFormat` formatting
 - **Analytics** -- category pie charts, burn rate trends, comparison charts
+- **Settings** -- default currency selector saved to user profile
+- **Help Dialog** -- in-app developer contact information
 - **Mobile-First Add** -- fast expense entry with numpad UI
 
 ## Project Structure

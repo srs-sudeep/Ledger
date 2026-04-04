@@ -8,8 +8,9 @@ class ShellScreen extends StatelessWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/groups')) return 1;
-    if (location.startsWith('/profile')) return 2;
+    if (location.startsWith('/accounts')) return 1;
+    if (location.startsWith('/groups')) return 2;
+    if (location.startsWith('/profile')) return 3;
     return 0;
   }
 
@@ -43,8 +44,10 @@ class ShellScreen extends StatelessWidget {
                 case 0:
                   context.go('/dashboard');
                 case 1:
-                  context.go('/groups');
+                  context.go('/accounts');
                 case 2:
+                  context.go('/groups');
+                case 3:
                   context.go('/profile');
               }
             },
@@ -53,6 +56,11 @@ class ShellScreen extends StatelessWidget {
                 icon: Icon(Icons.account_balance_wallet_outlined),
                 activeIcon: Icon(Icons.account_balance_wallet),
                 label: 'Vault',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_outlined),
+                activeIcon: Icon(Icons.account_balance),
+                label: 'Accounts',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.groups_outlined),

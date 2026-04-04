@@ -71,7 +71,7 @@ class ProfileScreen extends ConsumerWidget {
             icon: Icons.info_outline,
             title: 'About',
             subtitle: 'The Ledger v1.0.0',
-            onTap: () {},
+            onTap: () => context.push('/help'),
           ),
           const SizedBox(height: 32),
 
@@ -104,7 +104,10 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => ListView(
         shrinkWrap: true,
-        children: ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'JPY'].map((c) {
+        children: [
+          'USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'CHF',
+          'CNY', 'SGD', 'AED', 'NZD', 'SEK', 'NOK', 'MXN', 'BRL', 'ZAR',
+        ].map((c) {
           return ListTile(
             title: Text(c),
             onTap: () async {

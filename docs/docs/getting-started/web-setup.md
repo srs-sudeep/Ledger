@@ -51,6 +51,7 @@ npm start
 
 | Route | Description |
 |-------|-------------|
+| `/` | Public landing page with hero, features, and CTAs |
 | `/login` | Email/password + Google OAuth login |
 | `/register` | New user registration |
 | `/dashboard` | Unified overview with summary cards, charts, accounts |
@@ -59,3 +60,4 @@ npm start
 | `/groups` | Group listing |
 | `/groups/[id]` | Group detail with expenses, members, settle-up |
 | `/analytics` | Charts -- category breakdown, burn rate, comparison |
+| `/settings` | User settings -- default currency selector |

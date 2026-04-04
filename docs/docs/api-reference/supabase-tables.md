@@ -27,10 +27,35 @@ const cents = Math.round(parseFloat(amountStr) * 100);
 await supabase.from("expenses").insert({
   title,
   amount: cents,
+  currency: userCurrency, // e.g. "INR", "USD"
   payer_id: userId,
   group_id: null,
   category_id: categoryId || null,
   account_id: accountId || null,
+});
+```
+
+### Inserting Income with Currency
+
+```typescript
+await supabase.from("income").insert({
+  user_id: userId,
+  account_id: accountId || null,
+  amount: cents,
+  currency: accountCurrency || userCurrency,
+  source,
+  date,
+});
+```
+
+### Creating a Group with Currency
+
+```typescript
+await supabase.from("groups").insert({
+  name: groupName,
+  type: groupType,
+  currency: groupCurrency, // e.g. "EUR"
+  created_by: userId,
 });
 ```
 

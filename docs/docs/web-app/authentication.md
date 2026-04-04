@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Authentication
@@ -45,6 +45,15 @@ sequenceDiagram
 1. Refreshes the Supabase session (prevents cookie expiry)
 2. Redirects unauthenticated users away from dashboard routes
 3. Redirects authenticated users away from auth routes
+
+**Public routes** that do not require authentication:
+
+- `/` -- the marketing landing page
+- `/login`
+- `/register`
+- `/auth/callback`
+
+The landing page at `/` is accessible to everyone. Unauthenticated users visiting any dashboard route (e.g. `/dashboard`, `/accounts`) are redirected to `/login`. Authenticated users visiting auth routes (`/login`, `/register`) are redirected to `/dashboard`.
 
 ## OAuth Callback
 

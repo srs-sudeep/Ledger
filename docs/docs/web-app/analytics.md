@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 # Analytics
@@ -14,16 +14,19 @@ Users can filter by **3 months**, **6 months** (default), or **12 months**. The 
 
 ## Charts
 
+All charts format monetary values using `Intl.NumberFormat` with the user's `default_currency` from their profile. Axis labels and tooltips display the correct currency symbol and formatting (e.g. ₹1,200 for INR, $1,200 for USD).
+
 ### Category Pie Chart
 
 - Top 8 spending categories by total amount
 - Personal expenses only
-- Interactive tooltip with amounts
+- Interactive tooltip with currency-formatted amounts
 
 ### Monthly Burn Rate
 
 - Line chart showing monthly personal spending over time
 - Sorted chronologically
+- Y-axis labels formatted with user's currency
 
 ### Personal vs Group Comparison
 

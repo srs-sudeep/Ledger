@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Web App Overview
@@ -26,6 +26,10 @@ graph TB
     DashLayout["(dashboard) Layout"]
   end
 
+  subgraph public [Public Routes]
+    Landing["/ (landing page)"]
+  end
+
   subgraph auth [Auth Routes]
     Login["/login"]
     Register["/register"]
@@ -39,8 +43,10 @@ graph TB
     Groups["/groups"]
     GroupDetail["/groups/[id]"]
     Analytics["/analytics"]
+    Settings["/settings"]
   end
 
+  RootLayout --> public
   RootLayout --> AuthLayout --> auth
   RootLayout --> DashLayout --> dash
 ```
@@ -51,4 +57,5 @@ graph TB
 - **Client Components** for interactive forms and dialogs
 - **`loading.tsx`** files in every route group for skeleton loading states
 - **`useTransition`** in sidebar for navigation progress indicators
-- All monetary values stored as integer cents, formatted on display
+- **`CurrencyProvider`** wraps the dashboard layout, reading the user's `default_currency` from their profile and providing it via React context to all child components
+- All monetary values stored as integer cents, formatted on display using `Intl.NumberFormat` with the user's currency

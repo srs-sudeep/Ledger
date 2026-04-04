@@ -11,7 +11,8 @@ sidebar_position: 2
 1. Open **SQL Editor** in the Supabase dashboard.
 2. Paste the contents of `supabase/migrations/00001_initial_schema.sql` and run.
 3. Paste the contents of `supabase/migrations/00002_fix_rls_and_accounts.sql` and run.
-4. Paste `supabase/seed.sql` and run (inserts default categories only).
+4. Paste the contents of `supabase/migrations/00003_currency_columns.sql` and run.
+5. Paste `supabase/seed.sql` and run (inserts default categories only).
 
 ### Option B: Supabase CLI
 

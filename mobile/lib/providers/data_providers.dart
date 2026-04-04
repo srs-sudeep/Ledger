@@ -46,3 +46,11 @@ final simplifiedDebtsProvider =
         (ref, groupId) async {
   return SupabaseService.getSimplifiedDebts(groupId);
 });
+
+final accountsProvider = FutureProvider<List<Account>>((ref) async {
+  return SupabaseService.getAccounts();
+});
+
+final recentIncomeProvider = FutureProvider<List<Income>>((ref) async {
+  return SupabaseService.getRecentIncome();
+});

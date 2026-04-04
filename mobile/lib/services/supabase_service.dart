@@ -74,17 +74,32 @@ class SupabaseService {
     String? categoryId,
     required String date,
     String? notes,
+    String? currency,
+    String? accountId,
   }) async {
     final uid = currentUserId;
     if (uid == null) return;
-    await client.from('expenses').insert({
+    final row = <String, dynamic>{
       'title': title,
       'amount': amount,
       'category_id': categoryId,
       'date': date,
       'payer_id': uid,
       'notes': notes,
-    });
+    };
+    if (currency != null) row['currency'] = currency;
+    if (accountId != null) row['account_id'] = accountId;
+    await client.from('expenses').insert(row);
+    if (accountId != null) {
+      final acc = await client
+          .from('accounts')
+          .select('balance')
+          .eq('id', accountId)
+          .single();
+      await client.from('accounts').update({
+        'balance': (acc['balance'] as int) - amount,
+      }).eq('id', accountId);
+    }
   }
 
   // Groups
@@ -214,5 +229,85 @@ class SupabaseService {
       total += (row['owed_amount'] as int?) ?? 0;
     }
     return total;
+  }
+
+  // Accounts
+  static Future<List<Account>> getAccounts() async {
+    final uid = currentUserId;
+    if (uid == null) return [];
+    final data = await client
+        .from('accounts')
+        .select()
+        .eq('user_id', uid)
+        .order('is_default', ascending: false)
+        .order('created_at', ascending: false);
+    return (data as List).map((e) => Account.fromJson(e)).toList();
+  }
+
+  static Future<void> addAccount({
+    required String name,
+    required String type,
+    required int balance,
+    required String currency,
+    String? color,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await client.from('accounts').insert({
+      'user_id': uid,
+      'name': name,
+      'type': type,
+      'balance': balance,
+      'currency': currency,
+      'color': color,
+    });
+  }
+
+  static Future<void> deleteAccount(String id) async {
+    await client.from('accounts').delete().eq('id', id);
+  }
+
+  // Income
+  static Future<List<Income>> getRecentIncome({int limit = 10}) async {
+    final uid = currentUserId;
+    if (uid == null) return [];
+    final data = await client
+        .from('income')
+        .select()
+        .eq('user_id', uid)
+        .order('date', ascending: false)
+        .limit(limit);
+    return (data as List).map((e) => Income.fromJson(e)).toList();
+  }
+
+  static Future<void> addIncome({
+    required int amount,
+    required String source,
+    required String date,
+    String? accountId,
+    String? currency,
+    String? notes,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await client.from('income').insert({
+      'user_id': uid,
+      'account_id': accountId,
+      'amount': amount,
+      'currency': currency ?? 'USD',
+      'source': source,
+      'date': date,
+      'notes': notes,
+    });
+    if (accountId != null) {
+      final acc = await client
+          .from('accounts')
+          .select('balance')
+          .eq('id', accountId)
+          .single();
+      await client.from('accounts').update({
+        'balance': (acc['balance'] as int) + amount,
+      }).eq('id', accountId);
+    }
   }
 }

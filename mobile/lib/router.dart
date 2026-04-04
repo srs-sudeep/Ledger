@@ -5,10 +5,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/accounts_screen.dart';
 import 'screens/groups_screen.dart';
 import 'screens/group_detail_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/add_expense_screen.dart';
+import 'screens/help_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -32,6 +34,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: DashboardScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/accounts',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: AccountsScreen(),
             ),
           ),
           GoRoute(
@@ -64,6 +72,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             groupId: state.uri.queryParameters['groupId'],
           ),
         ),
+      ),
+      GoRoute(
+        path: '/help',
+        builder: (context, state) => const HelpScreen(),
       ),
     ],
   );

@@ -16,6 +16,13 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Concepts",
+      items: [
+        "concepts/money-flow",
+      ],
+    },
+    {
+      type: "category",
       label: "Database",
       items: [
         "database/schema",
@@ -27,6 +34,7 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Web App",
       items: [
+        "web-app/landing-page",
         "web-app/overview",
         "web-app/authentication",
         "web-app/dashboard",
@@ -34,6 +42,7 @@ const sidebars: SidebarsConfig = {
         "web-app/personal",
         "web-app/groups",
         "web-app/analytics",
+        "web-app/settings",
       ],
     },
     {
