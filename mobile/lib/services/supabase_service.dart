@@ -122,11 +122,16 @@ class SupabaseService {
         .select()
         .single();
     final group = Group.fromJson(res);
-    await client.from('group_members').insert({
-      'group_id': group.id,
-      'user_id': uid,
-      'role': 'admin',
-    });
+    try {
+      await client.from('group_members').insert({
+        'group_id': group.id,
+        'user_id': uid,
+        'role': 'admin',
+      });
+    } catch (e) {
+      await client.from('groups').delete().eq('id', group.id);
+      rethrow;
+    }
     return group;
   }
 
@@ -148,12 +153,13 @@ class SupabaseService {
         .select('id, full_name, email')
         .eq('email', normalized)
         .limit(1);
-    if (rows.isEmpty) {
+    final found = List<Map<String, dynamic>>.from(rows as List);
+    if (found.isEmpty) {
       throw Exception(
         'No account with that email. They must register before you can add them.',
       );
     }
-    final res = Map<String, dynamic>.from(rows.first as Map);
+    final res = found.first;
     final profileId = res['id'] as String;
     final existing = await client
         .from('group_members')
@@ -188,12 +194,32 @@ class SupabaseService {
   }
 
   static Future<List<Expense>> getGroupExpenses(String groupId) async {
+    // payer_id -> auth.users, not profiles; embed does not resolve like web.
     final data = await client
         .from('expenses')
-        .select('*, categories(*), profiles!expenses_payer_id_fkey(*)')
+        .select('*, categories(*)')
         .eq('group_id', groupId)
         .order('date', ascending: false);
-    return (data as List).map((e) => Expense.fromJson(e)).toList();
+
+    final list = List<Map<String, dynamic>>.from(data as List);
+    if (list.isEmpty) return [];
+
+    final payerIds = list.map((e) => e['payer_id'] as String).toSet().toList();
+    final profilesData =
+        await client.from('profiles').select().inFilter('id', payerIds);
+    final profilesList =
+        List<Map<String, dynamic>>.from(profilesData as List);
+    final byId = {
+      for (final p in profilesList) p['id'] as String: p,
+    };
+
+    return list.map((row) {
+      final merged = Map<String, dynamic>.from(row);
+      final pid = row['payer_id'] as String;
+      final p = byId[pid];
+      if (p != null) merged['profiles'] = p;
+      return Expense.fromJson(merged);
+    }).toList();
   }
 
   static Future<List<GroupMember>> getGroupMembers(String groupId) async {

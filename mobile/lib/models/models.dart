@@ -111,7 +111,12 @@ class Expense {
         groupId: json['group_id'] as String?,
         notes: json['notes'] as String?,
         category: json['categories'] != null
-            ? Category.fromJson(json['categories'] as Map<String, dynamic>)
+            ? Category.fromJson(
+                (json['categories'] is List
+                        ? (json['categories'] as List).first
+                        : json['categories'])
+                    as Map<String, dynamic>,
+              )
             : null,
         payer: json['profiles'] != null
             ? Profile.fromJson(json['profiles'] as Map<String, dynamic>)
