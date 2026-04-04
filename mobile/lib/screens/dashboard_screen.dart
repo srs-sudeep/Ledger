@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
@@ -20,6 +21,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final owedToMe = ref.watch(totalOwedToMeProvider);
     final iOwe = ref.watch(totalIOweProvider);
     final recentExpenses = ref.watch(recentExpensesProvider);
+    final displayCurrency =
+        profile.value?.defaultCurrency ?? kDefaultCurrency;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -86,7 +89,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _formatBalance(owedToMe.value ?? 0, iOwe.value ?? 0),
+                    _formatBalance(
+                      owedToMe.value ?? 0,
+                      iOwe.value ?? 0,
+                      displayCurrency,
+                    ),
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
                           fontSize: 36,
                           color: AppColors.surfaceTint,
@@ -106,6 +113,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           label: 'YOU OWE',
                           amount: iOwe.value ?? 0,
                           color: AppColors.error,
+                          currency: displayCurrency,
                         ),
                       ),
                       Expanded(
@@ -113,6 +121,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           label: 'YOU ARE OWED',
                           amount: owedToMe.value ?? 0,
                           color: AppColors.onTertiaryFixedVariant,
+                          currency: displayCurrency,
                         ),
                       ),
                     ],
@@ -261,9 +270,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  String _formatBalance(int owedToMe, int iOwe) {
-    final net = (owedToMe - iOwe) / 100;
-    return '\$${net.abs().toStringAsFixed(2)}';
+  String _formatBalance(int owedToMe, int iOwe, String currency) {
+    final net = owedToMe - iOwe;
+    final sign = net < 0 ? '-' : '';
+    return '$sign${formatMoneyCents(net.abs(), currency)}';
   }
 }
 
@@ -271,11 +281,13 @@ class _BalanceStat extends StatelessWidget {
   final String label;
   final int amount;
   final Color color;
+  final String currency;
 
   const _BalanceStat({
     required this.label,
     required this.amount,
     required this.color,
+    required this.currency,
   });
 
   @override
@@ -294,7 +306,7 @@ class _BalanceStat extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '\$${(amount / 100).toStringAsFixed(2)}',
+          formatMoneyCents(amount, currency),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,

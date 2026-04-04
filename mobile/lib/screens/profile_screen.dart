@@ -106,7 +106,7 @@ class ProfileScreen extends ConsumerWidget {
       builder: (ctx) => ListView(
         shrinkWrap: true,
         children: [
-          'USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'CHF',
+          'JPY', 'USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'CHF',
           'CNY', 'SGD', 'AED', 'NZD', 'SEK', 'NOK', 'MXN', 'BRL', 'ZAR',
         ].map((c) {
           return ListTile(

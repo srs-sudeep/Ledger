@@ -16,7 +16,7 @@ const _accountTypes = [
 ];
 
 const _currencies = [
-  'USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'CHF',
+  'JPY', 'USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'CHF',
   'CNY', 'SGD', 'AED', 'NZD', 'SEK', 'NOK', 'MXN', 'BRL', 'ZAR',
 ];
 
@@ -27,6 +27,9 @@ class AccountsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accounts = ref.watch(accountsProvider);
     final income = ref.watch(recentIncomeProvider);
+    final profile = ref.watch(profileProvider);
+    final displayCurrency =
+        profile.value?.defaultCurrency ?? kDefaultCurrency;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -48,7 +51,6 @@ class AccountsScreen extends ConsumerWidget {
             accounts.when(
               data: (accs) {
                 final total = accs.fold<int>(0, (sum, a) => sum + a.balance);
-                final dollars = total / 100;
                 return Container(
                   padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
@@ -73,7 +75,7 @@ class AccountsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '\$${dollars.toStringAsFixed(2)}',
+                        formatMoneyCents(total, displayCurrency),
                         style: Theme.of(context)
                             .textTheme
                             .displayLarge
@@ -245,9 +247,9 @@ class AccountsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 TextField(
                   controller: balanceController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Initial balance',
-                    prefixText: '\$ ',
+                    prefixText: currencyInputPrefix(selectedCurrency),
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
@@ -414,8 +416,6 @@ class _IncomeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dollars = income.amount / 100;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -459,7 +459,7 @@ class _IncomeTile extends StatelessWidget {
             ),
           ),
           Text(
-            '+\$${dollars.toStringAsFixed(2)}',
+            '+${formatMoneyCents(income.amount, income.currency)}',
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14,

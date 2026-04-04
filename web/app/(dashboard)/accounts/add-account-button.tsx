@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrency } from "@/components/currency/currency-provider";
-import { CURRENCY_OPTIONS } from "@/lib/currencies";
+import {
+  CURRENCY_OPTIONS,
+  amountInputAttrsOptional,
+} from "@/lib/currencies";
 
 const accountTypeOptions = [
   { value: "bank", label: "Bank Account" },
@@ -126,8 +129,7 @@ export function AddAccountButton({ userId }: AddAccountButtonProps) {
               id="balance"
               label={`Current balance (${currency})`}
               type="number"
-              step="0.01"
-              placeholder="0.00"
+              {...amountInputAttrsOptional(currency)}
               value={balance}
               onChange={(e) => setBalance(e.target.value)}
             />

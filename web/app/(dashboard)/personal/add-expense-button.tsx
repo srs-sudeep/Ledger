@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { createClient } from "@/lib/supabase/client";
 import type { Category, Account } from "@/lib/types";
 import { useCurrency } from "@/components/currency/currency-provider";
-import { amountFieldLabel } from "@/lib/currencies";
+import { amountFieldLabel, amountInputAttrs } from "@/lib/currencies";
 
 interface AddExpenseButtonProps {
   categories: Category[];
@@ -112,9 +112,7 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
               id="amount"
               label={amountFieldLabel(defaultCurrency)}
               type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0.00"
+              {...amountInputAttrs(defaultCurrency)}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required

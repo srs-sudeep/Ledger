@@ -15,7 +15,12 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
 import type { Category, GroupMember } from "@/lib/types";
-import { amountFieldLabel } from "@/lib/currencies";
+import {
+  amountFieldLabel,
+  amountInputAttrs,
+  amountInputAttrsOptional,
+} from "@/lib/currencies";
+import { formatCents } from "@/lib/utils";
 
 interface AddGroupExpenseButtonProps {
   groupId: string;
@@ -162,9 +167,7 @@ export function AddGroupExpenseButton({
                 id="gamount"
                 label={amountFieldLabel(groupCurrency)}
                 type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="0.00"
+                {...amountInputAttrs(groupCurrency)}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
@@ -211,7 +214,12 @@ export function AddGroupExpenseButton({
                   <p className="text-xs text-secondary">
                     Split equally among all {members.length} members
                     {amount &&
-                      ` — ${(parseFloat(amount) / members.length).toFixed(2)} each`}
+                      ` — ${formatCents(
+                        Math.round(
+                          ((parseFloat(amount) || 0) * 100) / members.length
+                        ),
+                        groupCurrency
+                      )} each`}
                   </p>
                 </TabsContent>
 
@@ -230,9 +238,7 @@ export function AddGroupExpenseButton({
                         <div className="w-32">
                           <Input
                             type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
+                            {...amountInputAttrsOptional(groupCurrency)}
                             value={customSplits[m.user_id] || ""}
                             onChange={(e) =>
                               setCustomSplits({

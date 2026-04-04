@@ -11,7 +11,8 @@ interface BudgetProgressProps {
   >;
 }
 
-const MONTHLY_BUDGET_DEFAULT = 50000; // $500 per category default
+/** Default budget per category (cents); ~¥50,000 when JPY is default. */
+const MONTHLY_BUDGET_DEFAULT = 50000;
 
 export function BudgetProgress({ categoryTotals }: BudgetProgressProps) {
   const currency = useCurrency();

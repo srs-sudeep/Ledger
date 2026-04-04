@@ -15,7 +15,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Account } from "@/lib/types";
 import { useCurrency } from "@/components/currency/currency-provider";
-import { amountFieldLabel } from "@/lib/currencies";
+import {
+  amountFieldLabel,
+  amountInputAttrs,
+} from "@/lib/currencies";
 
 interface AddIncomeButtonProps {
   accounts: Account[];
@@ -79,6 +82,10 @@ export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
     ...accounts.map((a) => ({ value: a.id, label: a.name })),
   ];
 
+  const incomeCurrency = accountId
+    ? accounts.find((a) => a.id === accountId)?.currency ?? defaultCurrency
+    : defaultCurrency;
+
   return (
     <>
       <Button onClick={() => setOpen(true)} variant="secondary" className="gap-2">
@@ -104,16 +111,9 @@ export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
 
             <Input
               id="incomeAmount"
-              label={amountFieldLabel(
-                accountId
-                  ? accounts.find((a) => a.id === accountId)?.currency ??
-                    defaultCurrency
-                  : defaultCurrency
-              )}
+              label={amountFieldLabel(incomeCurrency)}
               type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0.00"
+              {...amountInputAttrs(incomeCurrency)}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required

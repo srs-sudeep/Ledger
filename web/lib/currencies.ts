@@ -25,3 +25,23 @@ export const CURRENCY_OPTIONS = [
 export function amountFieldLabel(currencyCode: string): string {
   return `Amount (${currencyCode})`;
 }
+
+/** Placeholder / step / min for `<input type="number">` — yen uses whole units in the UI. */
+export function amountInputAttrs(currencyCode: string) {
+  const jpy = currencyCode === "JPY";
+  return {
+    step: jpy ? "1" : "0.01",
+    min: jpy ? "1" : "0.01",
+    placeholder: jpy ? "0" : "0.00",
+  } as const;
+}
+
+/** For optional or zero-allowed fields (e.g. exact split lines). */
+export function amountInputAttrsOptional(currencyCode: string) {
+  const jpy = currencyCode === "JPY";
+  return {
+    step: jpy ? "1" : "0.01",
+    min: "0",
+    placeholder: jpy ? "0" : "0.00",
+  } as const;
+}
