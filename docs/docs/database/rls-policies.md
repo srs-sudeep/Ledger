@@ -46,9 +46,11 @@ These are defined in `supabase/migrations/00002_fix_rls_and_accounts.sql`.
 
 | Operation | Rule |
 |-----------|------|
-| SELECT | Must be a group member |
+| SELECT | Group member **or** `created_by = auth.uid()` (so creators can read a row immediately after `INSERT … RETURNING`, before `group_members` exists) |
 | INSERT | `created_by = auth.uid()` |
 | UPDATE / DELETE | Must be a group admin |
+
+Migration `00004_groups_creator_select_rls.sql` adjusts the SELECT policy; without it, `insert().select()` from the app fails with RLS error `42501` on `groups`.
 
 ### group_members
 

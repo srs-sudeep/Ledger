@@ -12,7 +12,8 @@ sidebar_position: 2
 2. Paste the contents of `supabase/migrations/00001_initial_schema.sql` and run.
 3. Paste the contents of `supabase/migrations/00002_fix_rls_and_accounts.sql` and run.
 4. Paste the contents of `supabase/migrations/00003_currency_columns.sql` and run.
-5. Paste `supabase/seed.sql` and run (inserts default categories only).
+5. Paste the contents of `supabase/migrations/00004_groups_creator_select_rls.sql` and run (fixes group creation with `insert().select()`).
+6. Paste `supabase/seed.sql` and run (inserts default categories only).
 
 ### Option B: Supabase CLI
 
