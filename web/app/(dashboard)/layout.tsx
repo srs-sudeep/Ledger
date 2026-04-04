@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { CurrencyProvider } from "@/components/currency/currency-provider";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
 export default async function DashboardLayout({
   children,
@@ -24,7 +25,7 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single();
 
-  const defaultCurrency = profile?.default_currency ?? "USD";
+  const defaultCurrency = profile?.default_currency ?? DEFAULT_CURRENCY;
 
   return (
     <CurrencyProvider currency={defaultCurrency}>

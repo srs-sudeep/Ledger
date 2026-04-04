@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { CurrencySettingsForm } from "./currency-settings-form";
 
 export default async function SettingsPage() {
@@ -30,7 +31,7 @@ export default async function SettingsPage() {
       </div>
 
       <CurrencySettingsForm
-        initialCurrency={profile?.default_currency ?? "USD"}
+        initialCurrency={profile?.default_currency ?? DEFAULT_CURRENCY}
       />
     </div>
   );

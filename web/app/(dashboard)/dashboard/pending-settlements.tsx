@@ -54,7 +54,7 @@ export function PendingSettlements({
                             : "text-error"
                         }`}
                       >
-                        {formatCents(s.amount, s.currency ?? "USD")}
+                        {formatCents(s.amount, s.currency ?? "JPY")}
                       </span>
                     </p>
                   </div>

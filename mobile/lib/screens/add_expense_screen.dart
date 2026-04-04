@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
@@ -68,7 +70,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final cents = (parsed * 100).round();
     final date = DateTime.now().toIso8601String().split('T').first;
     final profile = ref.read(profileProvider).value;
-    final currency = profile?.defaultCurrency ?? 'USD';
+    final currency = profile?.defaultCurrency ?? kDefaultCurrency;
 
     try {
       if (_isGroup && widget.groupId != null) {
@@ -111,6 +113,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       }
       if (widget.groupId != null) {
         ref.invalidate(groupExpensesProvider(widget.groupId!));
+        ref.invalidate(groupProvider(widget.groupId!));
       }
 
       if (mounted) context.pop();
@@ -125,6 +128,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   Widget build(BuildContext context) {
     final categories = ref.watch(categoriesProvider);
     final accounts = ref.watch(accountsProvider);
+    final profile = ref.watch(profileProvider);
+    final displayCurrency =
+        profile.value?.defaultCurrency ?? kDefaultCurrency;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -206,9 +212,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
             const SizedBox(height: 16),
 
-            // Amount display
+            // Amount display (uses your default currency, JPY by default)
             Text(
-              '\$$_amount',
+              NumberFormat.simpleCurrency(name: displayCurrency)
+                  .format(double.tryParse(_amount) ?? 0),
               style: const TextStyle(
                 fontSize: 48,
                 fontWeight: FontWeight.w800,

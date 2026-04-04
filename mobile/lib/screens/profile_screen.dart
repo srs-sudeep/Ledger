@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
@@ -56,7 +57,7 @@ class ProfileScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.currency_exchange,
             title: 'Default Currency',
-            subtitle: profile.value?.defaultCurrency ?? 'USD',
+            subtitle: profile.value?.defaultCurrency ?? kDefaultCurrency,
             onTap: () => _showCurrencyPicker(context, ref),
           ),
           const SizedBox(height: 8),

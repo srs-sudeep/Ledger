@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCents(amount: number, currency: string = "USD"): string {
+export function formatCents(amount: number, currency: string = "JPY"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
@@ -15,7 +15,7 @@ export function formatCents(amount: number, currency: string = "USD"): string {
 
 export function formatCentsShort(
   amount: number,
-  currency: string = "USD"
+  currency: string = "JPY"
 ): string {
   const dollars = Math.abs(amount) / 100;
   try {
@@ -39,7 +39,7 @@ export function formatCentsShort(
 }
 
 /** Y-axis labels for charts (values are in cents) */
-export function formatAxisCents(cents: number, currency: string = "USD"): string {
+export function formatAxisCents(cents: number, currency: string = "JPY"): string {
   const n = cents / 100;
   try {
     return new Intl.NumberFormat(undefined, {

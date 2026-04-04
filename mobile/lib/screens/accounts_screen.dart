@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../currency_format.dart';
 import '../models/models.dart';
 import '../providers/data_providers.dart';
 import '../services/supabase_service.dart';
@@ -208,7 +209,7 @@ class AccountsScreen extends ConsumerWidget {
     final nameController = TextEditingController();
     final balanceController = TextEditingController();
     String selectedType = 'bank';
-    String selectedCurrency = 'USD';
+    String selectedCurrency = kDefaultCurrency;
 
     showDialog(
       context: context,

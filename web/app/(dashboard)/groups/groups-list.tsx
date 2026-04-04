@@ -7,6 +7,7 @@ import type { Group, GroupRole } from "@/lib/types";
 
 interface GroupWithRole extends Group {
   role: GroupRole;
+  memberCount: number;
 }
 
 interface GroupsListProps {
@@ -36,7 +37,7 @@ export function GroupsList({ groups }: GroupsListProps) {
           No groups yet
         </h3>
         <p className="text-secondary text-sm">
-          Create a group to start splitting expenses with others.
+          Create a group to start splitting expenses. You can join many groups.
         </p>
       </Card>
     );
@@ -67,9 +68,16 @@ export function GroupsList({ groups }: GroupsListProps) {
                 {group.name}
               </h3>
 
-              <div className="flex items-center gap-2 text-xs text-secondary">
-                <TypeIcon size={14} />
-                <span className="capitalize">{group.type}</span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-secondary">
+                <span className="inline-flex items-center gap-1">
+                  <TypeIcon size={14} />
+                  <span className="capitalize">{group.type}</span>
+                </span>
+                <span>
+                  {group.memberCount}{" "}
+                  {group.memberCount === 1 ? "member" : "members"}
+                </span>
+                <span className="font-mono">{group.currency}</span>
               </div>
             </Card>
           </Link>

@@ -23,6 +23,11 @@ final userGroupsProvider =
   return SupabaseService.getUserGroups();
 });
 
+final groupProvider =
+    FutureProvider.family<Group, String>((ref, groupId) async {
+  return SupabaseService.getGroup(groupId);
+});
+
 final totalOwedToMeProvider = FutureProvider<int>((ref) async {
   return SupabaseService.getTotalOwedToMe();
 });

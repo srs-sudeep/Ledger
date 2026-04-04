@@ -36,10 +36,12 @@ export function GroupMembers({ members, groupId, isAdmin }: GroupMembersProps) {
       .from("profiles")
       .select("id, full_name, email")
       .eq("email", inviteEmail.trim().toLowerCase())
-      .single();
+      .maybeSingle();
 
     if (lookupError || !profile) {
-      setError("No registered user found with that email. They must sign up first.");
+      setError(
+        "No account with that email. They must register before you can add them."
+      );
       setLoading(false);
       return;
     }

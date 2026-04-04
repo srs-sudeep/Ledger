@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../models/models.dart';
 import '../services/supabase_service.dart';
@@ -32,7 +33,7 @@ class GroupsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Shared expenses with friends & family',
+                      'All your groups—tap one for members & expenses',
                       style:
                           TextStyle(color: AppColors.secondary, fontSize: 14),
                     ),
@@ -90,6 +91,7 @@ class GroupsScreen extends ConsumerWidget {
                     final groupData =
                         item['groups'] as Map<String, dynamic>?;
                     if (groupData == null) return const SizedBox();
+                    final memberCount = _memberCountFromGroupJson(groupData);
                     final group = Group.fromJson(groupData);
 
                     return GestureDetector(
@@ -135,8 +137,7 @@ class GroupsScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    group.type[0].toUpperCase() +
-                                        group.type.substring(1),
+                                    '${group.type[0].toUpperCase()}${group.type.substring(1)} · $memberCount ${memberCount == 1 ? 'member' : 'members'} · ${group.currency}',
                                     style: const TextStyle(
                                       color: AppColors.secondary,
                                       fontSize: 12,
@@ -171,6 +172,17 @@ class GroupsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  int _memberCountFromGroupJson(Map<String, dynamic> g) {
+    final nested = g['group_members'];
+    if (nested is List && nested.isNotEmpty) {
+      final row = nested.first;
+      if (row is Map && row['count'] != null) {
+        return row['count'] as int;
+      }
+    }
+    return 0;
   }
 
   String _initials(String name) {
@@ -232,7 +244,7 @@ class GroupsScreen extends ConsumerWidget {
                         final profile =
                             await SupabaseService.getProfile();
                         final currency =
-                            profile?.defaultCurrency ?? 'USD';
+                            profile?.defaultCurrency ?? kDefaultCurrency;
                         final group =
                             await SupabaseService.createGroup(
                           name: name,

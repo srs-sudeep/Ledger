@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
@@ -18,13 +19,18 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final groupAsync = ref.watch(groupProvider(groupId));
     final expenses = ref.watch(groupExpensesProvider(groupId));
     final members = ref.watch(groupMembersProvider(groupId));
     final userId = SupabaseService.currentUserId;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Group Details'),
+        title: groupAsync.when(
+          data: (g) => Text(g.name),
+          loading: () => const Text('Group'),
+          error: (_, _) => const Text('Group'),
+        ),
         actions: [
           IconButton(
             onPressed: () => _showInviteDialog(context),
@@ -45,6 +51,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          ref.invalidate(groupProvider(groupId));
           ref.invalidate(groupExpensesProvider(groupId));
           ref.invalidate(groupMembersProvider(groupId));
         },
@@ -53,7 +60,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           children: [
             const SizedBox(height: 16),
 
-            // Members
+            // Members (vertical list: name + email so everyone is visible)
             members.when(
               data: (list) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,50 +85,69 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Anyone can be in several groups—this list is everyone in this group.',
+                    style: TextStyle(color: AppColors.secondary, fontSize: 12),
+                  ),
                   const SizedBox(height: 8),
-                  SizedBox(
-                    height: 64,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: list.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (_, i) {
-                        final m = list[i];
-                        return Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: AppColors.surfaceContainerHigh,
-                              backgroundImage: m.profile?.avatarUrl != null
-                                  ? NetworkImage(m.profile!.avatarUrl!)
-                                  : null,
-                              child: m.profile?.avatarUrl == null
-                                  ? Text(
-                                      (m.profile?.fullName ?? '?')[0]
-                                          .toUpperCase(),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700),
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              m.userId == userId
-                                  ? 'You'
-                                  : m.profile?.fullName?.split(' ').first ??
-                                      '?',
-                              style: const TextStyle(
-                                  fontSize: 10, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: list.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (_, i) {
+                      final m = list[i];
+                      final name = m.userId == userId
+                          ? 'You'
+                          : (m.profile?.fullName?.trim().isNotEmpty == true
+                              ? m.profile!.fullName!
+                              : 'Member');
+                      final email = m.profile?.email?.trim();
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.surfaceContainerHigh,
+                          backgroundImage: m.profile?.avatarUrl != null
+                              ? NetworkImage(m.profile!.avatarUrl!)
+                              : null,
+                          child: m.profile?.avatarUrl == null
+                              ? Text(
+                                  (name.isNotEmpty ? name : '?')[0]
+                                      .toUpperCase(),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700),
+                                )
+                              : null,
+                        ),
+                        title: Text(name,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          email ?? 'Email not on profile',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.secondary),
+                        ),
+                        trailing: m.role == 'admin'
+                            ? const Chip(
+                                label: Text('Admin', style: TextStyle(fontSize: 11)),
+                                visualDensity: VisualDensity.compact,
+                              )
+                            : null,
+                      );
+                    },
                   ),
                 ],
               ),
-              loading: () => const SizedBox(height: 64),
-              error: (_, _) => const SizedBox(),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, _) => const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Text('Could not load members',
+                    style: TextStyle(color: AppColors.secondary)),
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -300,18 +326,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                         });
                         emailController.clear();
                         ref.invalidate(groupMembersProvider(groupId));
-                      } on Exception catch (e) {
-                        final msg = e.toString();
-                        String display;
-                        if (msg.contains('Already a member')) {
-                          display = 'This user is already in the group.';
-                        } else if (msg.contains('JSONObject') ||
-                            msg.contains('single')) {
-                          display =
-                              'No registered user found with that email.';
-                        } else {
-                          display = 'Failed to add member.';
-                        }
+                      } catch (e) {
+                        final raw = e.toString();
+                        final display = raw.replaceFirst(
+                            RegExp(r'^Exception:\s*'), '');
                         setDialogState(() {
                           error = display;
                           loading = false;
@@ -336,6 +354,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final debts = await SupabaseService.getSimplifiedDebts(groupId);
     final members = ref.read(groupMembersProvider(groupId)).value ?? [];
     final userId = SupabaseService.currentUserId;
+    final group = await ref.read(groupProvider(groupId).future);
+    final currency = group.currency;
 
     final memberMap = {for (final m in members) m.userId: m.profile};
 
@@ -412,7 +432,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                         ),
                       ),
                       Text(
-                        '\$${(txn.amount / 100).toStringAsFixed(2)}',
+                        formatMoneyCents(txn.amount, currency),
                         style:
                             const TextStyle(fontWeight: FontWeight.w700),
                       ),

@@ -1,21 +1,27 @@
+import '../currency_format.dart';
+
 class Profile {
   final String id;
   final String? fullName;
+  final String? email;
   final String? avatarUrl;
   final String defaultCurrency;
 
   Profile({
     required this.id,
     this.fullName,
+    this.email,
     this.avatarUrl,
-    this.defaultCurrency = 'USD',
+    this.defaultCurrency = kDefaultCurrency,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         id: json['id'] as String,
         fullName: json['full_name'] as String?,
+        email: json['email'] as String?,
         avatarUrl: json['avatar_url'] as String?,
-        defaultCurrency: json['default_currency'] as String? ?? 'USD',
+        defaultCurrency:
+            json['default_currency'] as String? ?? kDefaultCurrency,
       );
 }
 
@@ -54,7 +60,7 @@ class Group {
     required this.type,
     required this.createdBy,
     required this.createdAt,
-    this.currency = 'USD',
+    this.currency = kDefaultCurrency,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) => Group(
@@ -63,7 +69,7 @@ class Group {
         type: json['type'] as String,
         createdBy: json['created_by'] as String,
         createdAt: json['created_at'] as String,
-        currency: json['currency'] as String? ?? 'USD',
+        currency: json['currency'] as String? ?? kDefaultCurrency,
       );
 }
 
@@ -84,7 +90,7 @@ class Expense {
     required this.id,
     required this.title,
     required this.amount,
-    this.currency = 'USD',
+    this.currency = kDefaultCurrency,
     this.categoryId,
     required this.date,
     required this.payerId,
@@ -98,7 +104,7 @@ class Expense {
         id: json['id'] as String,
         title: json['title'] as String,
         amount: json['amount'] as int,
-        currency: json['currency'] as String? ?? 'USD',
+        currency: json['currency'] as String? ?? kDefaultCurrency,
         categoryId: json['category_id'] as String?,
         date: json['date'] as String,
         payerId: json['payer_id'] as String,
@@ -112,10 +118,7 @@ class Expense {
             : null,
       );
 
-  String get formattedAmount {
-    final dollars = amount / 100;
-    return '\$${dollars.toStringAsFixed(2)}';
-  }
+  String get formattedAmount => formatMoneyCents(amount, currency);
 }
 
 class GroupMember {
@@ -180,7 +183,7 @@ class Account {
     required this.name,
     required this.type,
     required this.balance,
-    this.currency = 'USD',
+    this.currency = kDefaultCurrency,
     this.icon,
     this.color,
     this.isDefault = false,
@@ -192,16 +195,13 @@ class Account {
         name: json['name'] as String,
         type: json['type'] as String,
         balance: json['balance'] as int,
-        currency: json['currency'] as String? ?? 'USD',
+        currency: json['currency'] as String? ?? kDefaultCurrency,
         icon: json['icon'] as String?,
         color: json['color'] as String?,
         isDefault: json['is_default'] as bool? ?? false,
       );
 
-  String get formattedBalance {
-    final dollars = balance / 100;
-    return '\$${dollars.toStringAsFixed(2)}';
-  }
+  String get formattedBalance => formatMoneyCents(balance, currency);
 
   String get typeLabel {
     switch (type) {
@@ -236,7 +236,7 @@ class Income {
     required this.userId,
     this.accountId,
     required this.amount,
-    this.currency = 'USD',
+    this.currency = kDefaultCurrency,
     required this.source,
     required this.date,
     this.notes,
@@ -247,7 +247,7 @@ class Income {
         userId: json['user_id'] as String,
         accountId: json['account_id'] as String?,
         amount: json['amount'] as int,
-        currency: json['currency'] as String? ?? 'USD',
+        currency: json['currency'] as String? ?? kDefaultCurrency,
         source: json['source'] as String,
         date: json['date'] as String,
         notes: json['notes'] as String?,

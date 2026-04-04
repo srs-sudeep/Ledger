@@ -62,7 +62,7 @@ export default async function GroupDetailPage({
             <h2 className="font-headline font-bold text-lg">Group Expenses</h2>
             <AddGroupExpenseButton
               groupId={params.id}
-              groupCurrency={group.currency ?? "USD"}
+              groupCurrency={group.currency ?? "JPY"}
               members={members || []}
               categories={categories || []}
               userId={user.id}
@@ -79,7 +79,7 @@ export default async function GroupDetailPage({
           />
           <SettleUpSection
             groupId={params.id}
-            groupCurrency={group.currency ?? "USD"}
+            groupCurrency={group.currency ?? "JPY"}
             members={members || []}
             userId={user.id}
           />

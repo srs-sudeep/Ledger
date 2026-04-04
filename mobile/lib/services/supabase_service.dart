@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../currency_format.dart';
 import '../models/models.dart';
 
 class SupabaseService {
@@ -129,15 +130,30 @@ class SupabaseService {
     return group;
   }
 
+  static Future<Group> getGroup(String id) async {
+    final data = await client.from('groups').select().eq('id', id).single();
+    return Group.fromJson(data);
+  }
+
   static Future<String> inviteMemberByEmail({
     required String groupId,
     required String email,
   }) async {
-    final res = await client
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      throw Exception('Enter an email address.');
+    }
+    final rows = await client
         .from('profiles')
         .select('id, full_name, email')
-        .eq('email', email.trim().toLowerCase())
-        .single();
+        .eq('email', normalized)
+        .limit(1);
+    if (rows.isEmpty) {
+      throw Exception(
+        'No account with that email. They must register before you can add them.',
+      );
+    }
+    final res = Map<String, dynamic>.from(rows.first as Map);
     final profileId = res['id'] as String;
     final existing = await client
         .from('group_members')
@@ -145,7 +161,7 @@ class SupabaseService {
         .eq('group_id', groupId)
         .eq('user_id', profileId);
     if ((existing as List).isNotEmpty) {
-      throw Exception('Already a member');
+      throw Exception('That person is already in this group.');
     }
     await client.from('group_members').insert({
       'group_id': groupId,
@@ -164,7 +180,9 @@ class SupabaseService {
     if (uid == null) return [];
     final data = await client
         .from('group_members')
-        .select('group_id, role, groups(*)')
+        .select(
+          'group_id, role, groups(id, name, type, currency, created_by, created_at, group_members(count))',
+        )
         .eq('user_id', uid);
     return List<Map<String, dynamic>>.from(data);
   }
@@ -195,11 +213,19 @@ class SupabaseService {
     required String payerId,
     required List<Map<String, dynamic>> splits,
   }) async {
+    final gRow = await client
+        .from('groups')
+        .select('currency')
+        .eq('id', groupId)
+        .single();
+    final groupCurrency =
+        gRow['currency'] as String? ?? kDefaultCurrency;
     final res = await client
         .from('expenses')
         .insert({
           'title': title,
           'amount': amount,
+          'currency': groupCurrency,
           'category_id': categoryId,
           'date': date,
           'group_id': groupId,
@@ -350,7 +376,7 @@ class SupabaseService {
       'user_id': uid,
       'account_id': accountId,
       'amount': amount,
-      'currency': currency ?? 'USD',
+      'currency': currency ?? kDefaultCurrency,
       'source': source,
       'date': date,
       'notes': notes,
