@@ -1,42 +1,35 @@
 "use client";
 
-import { Bell, Settings, Search } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
-import type { Profile } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
-interface HeaderProps {
-  profile: Profile | null;
-}
+export function Header() {
+  const router = useRouter();
+  const supabase = createClient();
 
-export function Header({ profile }: HeaderProps) {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
-    <header className="w-full sticky top-0 z-40 bg-surface-container-low/80 backdrop-blur-xl flex justify-between items-center px-8 py-4">
-      <div className="flex items-center gap-8">
-        <span className="text-xl font-black text-on-surface tracking-tight font-headline">
-          The Ledger
-        </span>
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-outline" />
-          <input
-            className="pl-10 pr-4 py-2 bg-surface-container rounded-full text-sm w-64 focus:ring-1 focus:ring-surface-tint/20 outline-none border-none transition-all font-body"
-            placeholder="Search transactions..."
-            type="text"
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button className="p-2 text-secondary hover:bg-surface-container rounded-full transition-colors">
-          <Bell size={20} />
-        </button>
-        <button className="p-2 text-secondary hover:bg-surface-container rounded-full transition-colors">
-          <Settings size={20} />
-        </button>
-        <Avatar
-          src={profile?.avatar_url}
-          fallback={profile?.full_name || "User"}
-          size="sm"
-        />
-      </div>
+    <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-outline/10 bg-surface-container-low/80 px-8 py-4 backdrop-blur-xl">
+      <span className="font-headline text-xl font-black tracking-tight text-on-surface">
+        The Ledger
+      </span>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="gap-2"
+        onClick={handleSignOut}
+      >
+        <LogOut className="h-4 w-4" aria-hidden />
+        Sign out
+      </Button>
     </header>
   );
 }
