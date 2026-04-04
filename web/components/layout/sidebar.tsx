@@ -15,9 +15,11 @@ import {
   Loader2,
   Settings,
 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { HelpContactDialog } from "@/components/layout/help-contact-dialog";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -33,6 +35,7 @@ export function Sidebar() {
   const router = useRouter();
   const supabase = createClient();
   const [isPending, startTransition] = useTransition();
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const handleNav = (href: string) => {
     startTransition(() => {
@@ -47,6 +50,7 @@ export function Sidebar() {
 
   return (
     <>
+      <HelpContactDialog open={helpOpen} onOpenChange={setHelpOpen} />
       {isPending && (
         <div className="fixed top-0 left-0 right-0 z-[100] h-0.5">
           <div className="h-full bg-primary animate-progress-bar rounded-full" />
@@ -96,7 +100,11 @@ export function Sidebar() {
               Add Expense
             </Button>
           </Link>
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-secondary hover:text-on-surface hover:bg-surface-container transition-all duration-150 text-sm font-medium w-full">
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-secondary hover:text-on-surface hover:bg-surface-container transition-all duration-150 text-sm font-medium w-full text-left"
+          >
             <HelpCircle size={20} />
             <span>Help</span>
           </button>
