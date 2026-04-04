@@ -11,7 +11,6 @@ const config: Config = {
   organizationName: "lyari",
   projectName: "lyari-docs",
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
 
   i18n: {
     defaultLocale: "en",

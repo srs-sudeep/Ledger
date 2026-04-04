@@ -21,6 +21,8 @@ Thumbs.db
 out/
 build/
 dist/
+.docusaurus/
+
 
 # Debug
 npm-debug.log*
