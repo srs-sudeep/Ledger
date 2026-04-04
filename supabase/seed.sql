@@ -1,5 +1,7 @@
 -- ============================================================
--- Seed data: Default expense categories
+-- Seed data: Default expense categories only
+-- Does NOT insert auth users, profiles, groups, or expenses.
+-- Users are created via Supabase Auth (sign-up) or the dashboard.
 -- ============================================================
 INSERT INTO public.categories (name, icon, color) VALUES
   ('Groceries',      'shopping_basket',   '#4CAF50'),

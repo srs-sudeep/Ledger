@@ -23,6 +23,49 @@ lyari/
 
 ---
 
+## Demo
+
+There is **no hosted public demo instance** in this repo. Run the stack locally (or on your own Supabase + Vercel) and use the flows below.
+
+### Demo account
+
+| Item | Details |
+|------|---------|
+| **Login** | There is no fixed demo user. After setup, open **`/register`**, sign up with any real email (or use Supabase **Authentication → Users → Add user** for testing). |
+| **Password** | Choose your own; minimum length follows Supabase project settings (default 6). |
+| **Email confirmation** | If **Confirm email** is enabled in Supabase, complete the link in the message (or disable confirmations under **Authentication → Providers → Email** for local dev). |
+
+### Placeholder environment values (documentation only)
+
+Use your real **Project URL** and **anon** key from **Supabase → Project Settings → API**. These are **fake examples** for shape only:
+
+| Variable | Example (not real) |
+|----------|---------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://abcdefghijklmnop.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (long JWT-style string) |
+| Flutter `SUPABASE_URL` | Same as `NEXT_PUBLIC_SUPABASE_URL` |
+| Flutter `SUPABASE_ANON_KEY` | Same as `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| **Project ref** (CLI / dashboard URL) | 20-character id shown in the Supabase dashboard URL and **Project Settings → General** |
+
+Never commit real keys; keep them in `web/.env.local` and local Flutter `dart_define.json` (gitignored).
+
+### Demo data (seed)
+
+[`supabase/seed.sql`](supabase/seed.sql) only inserts **categories** (lookup rows in `public.categories`). It does **not** add users, profiles, groups, or expenses.
+
+- **Users** live in `auth.users` and are created through **Register** in the app, **Authentication → Users** in the Supabase dashboard, or the Auth API — not in this seed file.
+- After a user signs up, the migration’s `handle_new_user` trigger creates their **`profiles`** row automatically.
+
+### Suggested demo flow (local)
+
+1. **Web:** `cd web && npm run dev` → [http://localhost:3000](http://localhost:3000) → **Register** → **Dashboard**.
+2. **Personal:** **Transactions** (sidebar) or **Personal** route → **Add Expense** → pick category, amount, save.
+3. **Groups:** **Groups** → **Create Group** → open the group → **Add Group Expense** with splits → **Settle Up** (requires deployed **`debt-simplifier`** Edge Function).
+4. **Analytics:** **Analytics** after you have dated personal expenses.
+5. **Mobile:** Run Flutter with the same Supabase URL/anon key; sign in with the same user.
+
+---
+
 ## Setup guide
 
 ### Prerequisites
