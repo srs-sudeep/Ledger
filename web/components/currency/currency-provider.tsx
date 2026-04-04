@@ -5,8 +5,9 @@ import {
   useContext,
   type ReactNode,
 } from "react";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 
-const CurrencyContext = createContext<string>("USD");
+const CurrencyContext = createContext<string>(DEFAULT_CURRENCY);
 
 export function CurrencyProvider({
   currency,
@@ -16,7 +17,7 @@ export function CurrencyProvider({
   children: ReactNode;
 }) {
   return (
-    <CurrencyContext.Provider value={currency || "USD"}>
+    <CurrencyContext.Provider value={currency || DEFAULT_CURRENCY}>
       {children}
     </CurrencyContext.Provider>
   );

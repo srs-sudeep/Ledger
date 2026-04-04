@@ -1,10 +1,13 @@
+/** Fallback when profile has no currency (matches migration 00005). */
+export const DEFAULT_CURRENCY = "JPY";
+
 /** Common ISO 4217 codes for settings and account pickers */
 export const CURRENCY_OPTIONS = [
+  { code: "JPY", label: "Japanese Yen (JPY)" },
   { code: "USD", label: "US Dollar (USD)" },
   { code: "EUR", label: "Euro (EUR)" },
   { code: "GBP", label: "British Pound (GBP)" },
   { code: "INR", label: "Indian Rupee (INR)" },
-  { code: "JPY", label: "Japanese Yen (JPY)" },
   { code: "CAD", label: "Canadian Dollar (CAD)" },
   { code: "AUD", label: "Australian Dollar (AUD)" },
   { code: "CHF", label: "Swiss Franc (CHF)" },
