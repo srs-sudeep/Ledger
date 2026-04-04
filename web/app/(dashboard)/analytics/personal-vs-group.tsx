@@ -11,13 +11,16 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
-import { formatCents } from "@/lib/utils";
+import { formatCents, formatAxisCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface PersonalVsGroupChartProps {
   data: { month: string; personal: number; group: number }[];
 }
 
 export function PersonalVsGroupChart({ data }: PersonalVsGroupChartProps) {
+  const currency = useCurrency();
+
   return (
     <Card className="p-8">
       <CardTitle className="mb-6">Personal vs Group Spending</CardTitle>
@@ -44,12 +47,12 @@ export function PersonalVsGroupChart({ data }: PersonalVsGroupChartProps) {
               tick={{ fontSize: 11, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `$${(v / 100).toFixed(0)}`}
+              tickFormatter={(v) => formatAxisCents(Number(v), currency)}
               width={60}
             />
             <Tooltip
               formatter={(value, name) => [
-                formatCents(Number(value)),
+                formatCents(Number(value), currency),
                 name === "personal" ? "Personal" : "Group",
               ]}
               contentStyle={{

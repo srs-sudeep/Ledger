@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import type { Account } from "@/lib/types";
+import { useCurrency } from "@/components/currency/currency-provider";
+import { amountFieldLabel } from "@/lib/currencies";
 
 interface AddIncomeButtonProps {
   accounts: Account[];
@@ -21,6 +23,7 @@ interface AddIncomeButtonProps {
 }
 
 export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
+  const defaultCurrency = useCurrency();
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState("");
   const [amount, setAmount] = useState("");
@@ -36,11 +39,14 @@ export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
     setLoading(true);
 
     const cents = Math.round(parseFloat(amount) * 100);
+    const acc = accountId ? accounts.find((a) => a.id === accountId) : undefined;
+    const rowCurrency = acc?.currency ?? defaultCurrency;
 
     const { error } = await supabase.from("income").insert({
       user_id: userId,
       account_id: accountId || null,
       amount: cents,
+      currency: rowCurrency,
       source,
       date,
       notes: notes || null,
@@ -98,7 +104,12 @@ export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
 
             <Input
               id="incomeAmount"
-              label="Amount ($)"
+              label={amountFieldLabel(
+                accountId
+                  ? accounts.find((a) => a.id === accountId)?.currency ??
+                    defaultCurrency
+                  : defaultCurrency
+              )}
               type="number"
               step="0.01"
               min="0.01"

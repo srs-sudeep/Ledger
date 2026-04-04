@@ -12,6 +12,7 @@ import {
 import { Card, CardTitle } from "@/components/ui/card";
 import { formatCents } from "@/lib/utils";
 import type { Account, AccountType } from "@/lib/types";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 const typeIcons: Record<AccountType, typeof Landmark> = {
   bank: Landmark,
@@ -27,6 +28,8 @@ interface AccountsOverviewProps {
 }
 
 export function AccountsOverview({ accounts }: AccountsOverviewProps) {
+  const defaultCurrency = useCurrency();
+
   if (accounts.length === 0) return null;
 
   const total = accounts.reduce((sum, a) => sum + a.balance, 0);
@@ -46,7 +49,7 @@ export function AccountsOverview({ accounts }: AccountsOverviewProps) {
       <p className="text-xs text-secondary mb-4">
         Total:{" "}
         <span className="font-semibold text-on-surface tabular-nums">
-          {formatCents(total)}
+          {formatCents(total, defaultCurrency)}
         </span>
       </p>
 

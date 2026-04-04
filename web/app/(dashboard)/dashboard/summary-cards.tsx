@@ -1,7 +1,10 @@
+"use client";
+
 import { formatCents } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, AlertTriangle, Calendar } from "lucide-react";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface SummaryCardsProps {
   netWorth: number;
@@ -16,6 +19,8 @@ export function SummaryCards({
   iOwe,
   monthlySpend,
 }: SummaryCardsProps) {
+  const currency = useCurrency();
+
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card>
@@ -24,7 +29,7 @@ export function SummaryCards({
         </p>
         <div className="flex items-end justify-between">
           <h2 className="text-2xl font-extrabold font-headline tabular-nums">
-            {formatCents(Math.abs(netWorth))}
+            {formatCents(Math.abs(netWorth), currency)}
           </h2>
           <Badge variant="success" className="gap-1">
             <TrendingUp size={12} />
@@ -39,7 +44,7 @@ export function SummaryCards({
         </p>
         <div className="flex items-end justify-between">
           <h2 className="text-2xl font-extrabold font-headline tabular-nums text-on-tertiary-fixed-variant">
-            {formatCents(owedToMe)}
+            {formatCents(owedToMe, currency)}
           </h2>
           <Badge variant="success" className="gap-1">
             <Users size={12} />
@@ -54,7 +59,7 @@ export function SummaryCards({
         </p>
         <div className="flex items-end justify-between">
           <h2 className="text-2xl font-extrabold font-headline tabular-nums text-error">
-            {formatCents(iOwe)}
+            {formatCents(iOwe, currency)}
           </h2>
           <Badge variant="error" className="gap-1">
             <AlertTriangle size={12} />
@@ -69,7 +74,7 @@ export function SummaryCards({
         </p>
         <div className="flex items-end justify-between">
           <h2 className="text-2xl font-extrabold font-headline tabular-nums">
-            {formatCents(monthlySpend)}
+            {formatCents(monthlySpend, currency)}
           </h2>
           <Badge variant="muted" className="gap-1">
             <Calendar size={12} />

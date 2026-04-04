@@ -15,9 +15,11 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
 import type { Category, GroupMember } from "@/lib/types";
+import { amountFieldLabel } from "@/lib/currencies";
 
 interface AddGroupExpenseButtonProps {
   groupId: string;
+  groupCurrency: string;
   members: GroupMember[];
   categories: Category[];
   userId: string;
@@ -25,6 +27,7 @@ interface AddGroupExpenseButtonProps {
 
 export function AddGroupExpenseButton({
   groupId,
+  groupCurrency,
   members,
   categories,
   userId,
@@ -60,6 +63,7 @@ export function AddGroupExpenseButton({
       .insert({
         title,
         amount: cents,
+        currency: groupCurrency,
         category_id: categoryId || null,
         date,
         payer_id: payerId,
@@ -156,7 +160,7 @@ export function AddGroupExpenseButton({
             <div className="grid grid-cols-2 gap-4">
               <Input
                 id="gamount"
-                label="Amount ($)"
+                label={amountFieldLabel(groupCurrency)}
                 type="number"
                 step="0.01"
                 min="0.01"

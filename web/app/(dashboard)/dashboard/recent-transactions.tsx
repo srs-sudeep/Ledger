@@ -87,7 +87,7 @@ export function RecentTransactions({
                     }
                   >
                     {expense.payer_id === userId ? "-" : "+"}
-                    {formatCents(expense.amount)}
+                    {formatCents(expense.amount, expense.currency)}
                   </span>
                 </td>
               </tr>

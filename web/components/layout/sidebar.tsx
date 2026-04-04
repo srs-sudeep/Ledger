@@ -13,6 +13,7 @@ import {
   LogOut,
   Plus,
   Loader2,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/personal", label: "Transactions", icon: Receipt },
   { href: "/groups", label: "Groups", icon: Users },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {

@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -52,7 +54,7 @@ export function PendingSettlements({
                             : "text-error"
                         }`}
                       >
-                        {formatCents(s.amount)}
+                        {formatCents(s.amount, s.currency ?? "USD")}
                       </span>
                     </p>
                   </div>

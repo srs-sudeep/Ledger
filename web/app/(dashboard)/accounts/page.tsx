@@ -3,7 +3,7 @@ import type { Account, Income } from "@/lib/types";
 import { AccountCard } from "./account-card";
 import { AddAccountButton } from "./add-account-button";
 import { AddIncomeButton } from "./add-income-button";
-import { formatCents } from "@/lib/utils";
+import { FormattedCents } from "@/components/currency/formatted-cents";
 
 export default async function AccountsPage() {
   const supabase = createClient();
@@ -42,7 +42,7 @@ export default async function AccountsPage() {
           <p className="text-sm text-secondary mt-1">
             Total balance:{" "}
             <span className="font-semibold text-on-surface tabular-nums">
-              {formatCents(totalBalance)}
+              <FormattedCents amount={totalBalance} />
             </span>
           </p>
         </div>
@@ -92,7 +92,10 @@ export default async function AccountsPage() {
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-green-600 tabular-nums">
-                    +{formatCents(inc.amount)}
+                    +<FormattedCents
+                      amount={inc.amount}
+                      currency={inc.currency}
+                    />
                   </span>
                 </div>
               ))}

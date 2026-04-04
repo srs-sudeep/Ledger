@@ -5,6 +5,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryPieChart } from "./category-pie-chart";
 import { MonthlyBurnRate } from "./monthly-burn-rate";
 import { PersonalVsGroupChart } from "./personal-vs-group";
+import { formatCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface ExpenseData {
   amount: number;
@@ -24,6 +26,7 @@ export function AnalyticsDashboard({
   personalExpenses,
   groupExpenses,
 }: AnalyticsDashboardProps) {
+  const currency = useCurrency();
   const [range, setRange] = useState<TimeRange>("6m");
 
   const cutoff = useMemo(() => {
@@ -121,7 +124,7 @@ export function AnalyticsDashboard({
               Personal Total
             </p>
             <p className="font-headline font-extrabold text-xl tabular-nums">
-              ${(totalPersonal / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              {formatCents(totalPersonal, currency)}
             </p>
           </div>
           <div>
@@ -129,7 +132,7 @@ export function AnalyticsDashboard({
               Group Total
             </p>
             <p className="font-headline font-extrabold text-xl tabular-nums">
-              ${(totalGroup / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              {formatCents(totalGroup, currency)}
             </p>
           </div>
         </div>

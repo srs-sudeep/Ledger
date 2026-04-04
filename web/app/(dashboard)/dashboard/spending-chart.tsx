@@ -11,12 +11,14 @@ import {
   Cell,
 } from "recharts";
 import { formatCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface SpendingChartProps {
   data: { day: string; amount: number }[];
 }
 
 export function SpendingChart({ data }: SpendingChartProps) {
+  const currency = useCurrency();
   const maxAmount = Math.max(...data.map((d) => d.amount), 1);
 
   return (
@@ -41,7 +43,10 @@ export function SpendingChart({ data }: SpendingChartProps) {
           />
           <YAxis hide />
           <Tooltip
-            formatter={(value) => [formatCents(Number(value)), "Spent"]}
+            formatter={(value) => [
+              formatCents(Number(value), currency),
+              "Spent",
+            ]}
             contentStyle={{
               background: "#1e293b",
               border: "none",

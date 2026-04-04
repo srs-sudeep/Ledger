@@ -13,12 +13,44 @@ export function formatCents(amount: number, currency: string = "USD"): string {
   }).format(amount / 100);
 }
 
-export function formatCentsShort(amount: number): string {
+export function formatCentsShort(
+  amount: number,
+  currency: string = "USD"
+): string {
   const dollars = Math.abs(amount) / 100;
-  if (dollars >= 1000) {
-    return `$${(dollars / 1000).toFixed(1)}k`;
+  try {
+    if (dollars >= 1000) {
+      return new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency,
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(amount / 100);
+    }
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount / 100);
+  } catch {
+    return formatCents(amount, currency);
   }
-  return `$${dollars.toFixed(2)}`;
+}
+
+/** Y-axis labels for charts (values are in cents) */
+export function formatAxisCents(cents: number, currency: string = "USD"): string {
+  const n = cents / 100;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      notation: Math.abs(n) >= 1000 ? "compact" : "standard",
+      maximumFractionDigits: Math.abs(n) >= 1000 ? 1 : 0,
+    }).format(n);
+  } catch {
+    return formatCents(cents, currency);
+  }
 }
 
 export function getInitials(name: string): string {

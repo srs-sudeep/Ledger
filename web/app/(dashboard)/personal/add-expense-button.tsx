@@ -9,6 +9,8 @@ import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
 import type { Category, Account } from "@/lib/types";
+import { useCurrency } from "@/components/currency/currency-provider";
+import { amountFieldLabel } from "@/lib/currencies";
 
 interface AddExpenseButtonProps {
   categories: Category[];
@@ -17,6 +19,7 @@ interface AddExpenseButtonProps {
 }
 
 export function AddExpenseButton({ categories, accounts = [], userId }: AddExpenseButtonProps) {
+  const defaultCurrency = useCurrency();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -33,10 +36,15 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
     setLoading(true);
 
     const cents = Math.round(parseFloat(amount) * 100);
+    const fromAccount = accountId
+      ? accounts.find((a) => a.id === accountId)
+      : undefined;
+    const rowCurrency = fromAccount?.currency ?? defaultCurrency;
 
     const { error } = await supabase.from("expenses").insert({
       title,
       amount: cents,
+      currency: rowCurrency,
       category_id: categoryId || null,
       account_id: accountId || null,
       date,
@@ -102,7 +110,7 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
 
             <Input
               id="amount"
-              label="Amount ($)"
+              label={amountFieldLabel(defaultCurrency)}
               type="number"
               step="0.01"
               min="0.01"

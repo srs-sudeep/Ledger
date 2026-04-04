@@ -10,13 +10,16 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { formatCents } from "@/lib/utils";
+import { formatCents, formatAxisCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface MonthlyBurnRateProps {
   data: { month: string; amount: number }[];
 }
 
 export function MonthlyBurnRate({ data }: MonthlyBurnRateProps) {
+  const currency = useCurrency();
+
   return (
     <Card className="p-8">
       <CardTitle className="mb-6">Monthly Burn Rate</CardTitle>
@@ -43,11 +46,14 @@ export function MonthlyBurnRate({ data }: MonthlyBurnRateProps) {
               tick={{ fontSize: 11, fill: "#9ca3af" }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `$${(v / 100).toFixed(0)}`}
+              tickFormatter={(v) => formatAxisCents(Number(v), currency)}
               width={60}
             />
             <Tooltip
-              formatter={(value) => [formatCents(Number(value)), "Spent"]}
+              formatter={(value) => [
+                formatCents(Number(value), currency),
+                "Spent",
+              ]}
               contentStyle={{
                 background: "#1e293b",
                 border: "none",

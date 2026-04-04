@@ -13,12 +13,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface CreateGroupButtonProps {
   userId: string;
 }
 
 export function CreateGroupButton({ userId }: CreateGroupButtonProps) {
+  const groupCurrency = useCurrency();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState("custom");
@@ -32,7 +34,7 @@ export function CreateGroupButton({ userId }: CreateGroupButtonProps) {
 
     const { data: group, error } = await supabase
       .from("groups")
-      .insert({ name, type, created_by: userId })
+      .insert({ name, type, created_by: userId, currency: groupCurrency })
       .select()
       .single();
 

@@ -1,5 +1,8 @@
+"use client";
+
 import { Card, CardTitle } from "@/components/ui/card";
 import { formatCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface BudgetProgressProps {
   categoryTotals: Record<
@@ -11,6 +14,8 @@ interface BudgetProgressProps {
 const MONTHLY_BUDGET_DEFAULT = 50000; // $500 per category default
 
 export function BudgetProgress({ categoryTotals }: BudgetProgressProps) {
+  const currency = useCurrency();
+
   const sorted = Object.entries(categoryTotals).sort(
     ([, a], [, b]) => b.total - a.total
   );
@@ -40,7 +45,8 @@ export function BudgetProgress({ categoryTotals }: BudgetProgressProps) {
                   <span className="text-sm font-semibold">{name}</span>
                 </div>
                 <span className="text-xs font-bold tabular-nums text-secondary">
-                  {formatCents(total)} / {formatCents(MONTHLY_BUDGET_DEFAULT)}
+                  {formatCents(total, currency)} /{" "}
+                  {formatCents(MONTHLY_BUDGET_DEFAULT, currency)}
                 </span>
               </div>
               <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">

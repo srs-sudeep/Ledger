@@ -24,6 +24,7 @@ export interface Group {
   id: string;
   name: string;
   type: GroupType;
+  currency: string;
   created_by: string;
   created_at: string;
 }
@@ -68,6 +69,7 @@ export interface Settlement {
   from_user_id: string;
   to_user_id: string;
   amount: number;
+  currency: string;
   group_id: string;
   status: SettlementStatus;
   created_at: string;
@@ -114,6 +116,7 @@ export interface Income {
   user_id: string;
   account_id: string | null;
   amount: number;
+  currency: string;
   source: string;
   date: string;
   notes: string | null;

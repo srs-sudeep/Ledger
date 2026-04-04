@@ -145,7 +145,7 @@ export function PersonalExpenseTable({ expenses }: PersonalExpenseTableProps) {
                   </div>
                 </td>
                 <td className="px-8 py-4 text-right font-bold tabular-nums">
-                  -{formatCents(expense.amount)}
+                  -{formatCents(expense.amount, expense.currency)}
                 </td>
               </tr>
             ))

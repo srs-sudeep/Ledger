@@ -18,12 +18,14 @@ import type { GroupMember, SimplifiedTransaction } from "@/lib/types";
 
 interface SettleUpSectionProps {
   groupId: string;
+  groupCurrency: string;
   members: GroupMember[];
   userId: string;
 }
 
 export function SettleUpSection({
   groupId,
+  groupCurrency,
   members,
   userId,
 }: SettleUpSectionProps) {
@@ -66,6 +68,7 @@ export function SettleUpSection({
       from_user_id: txn.from,
       to_user_id: txn.to,
       amount: txn.amount,
+      currency: groupCurrency,
       group_id: groupId,
       status: "completed",
       settled_at: new Date().toISOString(),
@@ -147,7 +150,7 @@ export function SettleUpSection({
 
                     <div className="flex items-center gap-3">
                       <span className="font-headline font-bold tabular-nums">
-                        {formatCents(txn.amount)}
+                        {formatCents(txn.amount, groupCurrency)}
                       </span>
                       {involvesMe && (
                         <Button

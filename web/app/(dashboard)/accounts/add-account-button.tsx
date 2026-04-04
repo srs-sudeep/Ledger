@@ -13,6 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
+import { useCurrency } from "@/components/currency/currency-provider";
+import { CURRENCY_OPTIONS } from "@/lib/currencies";
 
 const accountTypeOptions = [
   { value: "bank", label: "Bank Account" },
@@ -39,10 +41,12 @@ interface AddAccountButtonProps {
 }
 
 export function AddAccountButton({ userId }: AddAccountButtonProps) {
+  const profileDefault = useCurrency();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState("bank");
   const [balance, setBalance] = useState("");
+  const [currency, setCurrency] = useState(profileDefault);
   const [color, setColor] = useState("#6366f1");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -59,6 +63,7 @@ export function AddAccountButton({ userId }: AddAccountButtonProps) {
       name,
       type,
       balance: cents,
+      currency,
       color,
     });
 
@@ -68,6 +73,7 @@ export function AddAccountButton({ userId }: AddAccountButtonProps) {
       setBalance("");
       setType("bank");
       setColor("#6366f1");
+      setCurrency(profileDefault);
       router.refresh();
     }
 
@@ -105,9 +111,20 @@ export function AddAccountButton({ userId }: AddAccountButtonProps) {
               onChange={(e) => setType(e.target.value)}
             />
 
+            <Select
+              id="accountCurrency"
+              label="Currency"
+              options={CURRENCY_OPTIONS.map((c) => ({
+                value: c.code,
+                label: c.label,
+              }))}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            />
+
             <Input
               id="balance"
-              label="Current Balance ($)"
+              label={`Current balance (${currency})`}
               type="number"
               step="0.01"
               placeholder="0.00"

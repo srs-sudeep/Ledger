@@ -9,12 +9,14 @@ import {
   Tooltip,
 } from "recharts";
 import { formatCents } from "@/lib/utils";
+import { useCurrency } from "@/components/currency/currency-provider";
 
 interface CategoryPieChartProps {
   data: { name: string; value: number; color: string }[];
 }
 
 export function CategoryPieChart({ data }: CategoryPieChartProps) {
+  const currency = useCurrency();
   const total = data.reduce((s, d) => s + d.value, 0);
 
   return (
@@ -44,7 +46,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => formatCents(Number(value))}
+                formatter={(value) => formatCents(Number(value), currency)}
                 contentStyle={{
                   background: "#1e293b",
                   border: "none",
@@ -75,7 +77,7 @@ export function CategoryPieChart({ data }: CategoryPieChartProps) {
                     {((item.value / total) * 100).toFixed(0)}%
                   </span>
                   <span className="font-bold tabular-nums">
-                    {formatCents(item.value)}
+                    {formatCents(item.value, currency)}
                   </span>
                 </div>
               </div>

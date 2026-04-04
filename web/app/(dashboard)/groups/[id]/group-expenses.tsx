@@ -56,7 +56,7 @@ export function GroupExpenses({ expenses, userId }: GroupExpensesProps) {
 
             <div className="text-right">
               <p className="font-headline font-bold tabular-nums">
-                {formatCents(expense.amount)}
+                {formatCents(expense.amount, expense.currency)}
               </p>
               <p className="text-[10px] text-secondary mt-0.5">
                 {new Date(expense.date).toLocaleDateString("en-US", {
