@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { fetchGroupMembersWithProfiles } from "@/lib/supabase/fetch-group-members";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { notFound } from "next/navigation";
 import { GroupHeader } from "./group-header";
 import { GroupExpenses } from "./group-expenses";
@@ -46,10 +47,24 @@ export default async function GroupDetailPage({
     notFound();
   }
 
+  // Legacy USD groups: show JPY everywhere. Admins can persist the fix; members still see JPY in UI.
+  const groupCurrency =
+    !group.currency || group.currency === "USD"
+      ? DEFAULT_CURRENCY
+      : group.currency;
+  const groupRow = { ...group, currency: groupCurrency };
+
+  if (group.currency === "USD") {
+    await supabase
+      .from("groups")
+      .update({ currency: DEFAULT_CURRENCY })
+      .eq("id", params.id);
+  }
+
   return (
     <div className="space-y-8">
       <GroupHeader
-        group={group}
+        group={groupRow}
         memberCount={members?.length || 0}
         isAdmin={currentMembership.role === "admin"}
       />
@@ -60,7 +75,7 @@ export default async function GroupDetailPage({
             <h2 className="font-headline font-bold text-lg">Group Expenses</h2>
             <AddGroupExpenseButton
               groupId={params.id}
-              groupCurrency={group.currency ?? "JPY"}
+              groupCurrency={groupCurrency}
               members={members || []}
               categories={categories || []}
               userId={user.id}
@@ -77,7 +92,7 @@ export default async function GroupDetailPage({
           />
           <SettleUpSection
             groupId={params.id}
-            groupCurrency={group.currency ?? "JPY"}
+            groupCurrency={groupCurrency}
             members={members || []}
             userId={user.id}
           />

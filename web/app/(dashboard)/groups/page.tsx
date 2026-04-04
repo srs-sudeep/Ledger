@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_CURRENCY } from "@/lib/currencies";
 import { GroupsList } from "./groups-list";
 import { CreateGroupButton } from "./create-group-button";
 import type { Group, GroupRole } from "@/lib/types";
@@ -28,8 +29,13 @@ export default async function GroupsPage() {
       if (!raw) return null;
       const { group_members, ...rest } = raw;
       const memberCount = group_members?.[0]?.count ?? 0;
+      const currency =
+        !rest.currency || rest.currency === "USD"
+          ? DEFAULT_CURRENCY
+          : rest.currency;
       return {
         ...rest,
+        currency,
         role: m.role as GroupRole,
         memberCount,
       };

@@ -136,7 +136,18 @@ class SupabaseService {
   }
 
   static Future<Group> getGroup(String id) async {
-    final data = await client.from('groups').select().eq('id', id).single();
+    final raw = await client.from('groups').select().eq('id', id).single();
+    final data = Map<String, dynamic>.from(raw as Map);
+    final cur = data['currency'] as String?;
+    if (cur == null || cur == 'USD') {
+      if (cur == 'USD') {
+        await client
+            .from('groups')
+            .update({'currency': kDefaultCurrency})
+            .eq('id', id);
+      }
+      data['currency'] = kDefaultCurrency;
+    }
     return Group.fromJson(data);
   }
 
@@ -181,6 +192,18 @@ class SupabaseService {
     await client.from('group_members').delete().eq('id', membershipId);
   }
 
+  static Map<String, dynamic> _coerceGroupNested(
+    Map<String, dynamic> row,
+  ) {
+    final g = row['groups'];
+    if (g is! Map) return row;
+    final gm = Map<String, dynamic>.from(g);
+    if (gm['currency'] == null || gm['currency'] == 'USD') {
+      gm['currency'] = kDefaultCurrency;
+    }
+    return {...row, 'groups': gm};
+  }
+
   static Future<List<Map<String, dynamic>>> getUserGroups() async {
     final uid = currentUserId;
     if (uid == null) return [];
@@ -190,7 +213,10 @@ class SupabaseService {
           'group_id, role, groups(id, name, type, currency, created_by, created_at, group_members(count))',
         )
         .eq('user_id', uid);
-    return List<Map<String, dynamic>>.from(data);
+    final list = List<Map<String, dynamic>>.from(data as List);
+    return list
+        .map((row) => _coerceGroupNested(Map<String, dynamic>.from(row)))
+        .toList();
   }
 
   static Future<List<Expense>> getGroupExpenses(String groupId) async {
