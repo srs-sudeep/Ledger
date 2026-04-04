@@ -3,17 +3,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold transition-all duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "cta-gradient text-white shadow-lg hover:opacity-90",
-        primary: "bg-surface-tint text-on-primary hover:bg-surface-tint/90",
+        default:
+          "bg-surface-tint text-on-primary hover:bg-surface-tint/85 shadow-sm hover:shadow-md",
+        gradient: "cta-gradient text-white shadow-lg hover:opacity-90",
         secondary:
           "bg-surface-container-low text-on-surface hover:bg-surface-container",
         outline:
-          "border-2 border-on-surface text-on-surface hover:bg-on-surface hover:text-white",
-        ghost: "hover:bg-surface-container-low text-on-surface-variant",
+          "border border-outline/30 text-on-surface hover:bg-surface-container-low",
+        ghost:
+          "hover:bg-surface-container-low text-on-surface-variant hover:text-on-surface",
         destructive: "bg-error text-on-error hover:bg-error/90",
         link: "text-surface-tint underline-offset-4 hover:underline",
       },

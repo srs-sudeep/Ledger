@@ -38,3 +38,41 @@
     box-shadow: 0 12px 40px -12px rgba(19, 27, 46, 0.08);
   }
 }
+
+@keyframes progress-bar {
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
+  50% {
+    width: 70%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-progress-bar {
+  animation: progress-bar 1.5s ease-in-out infinite;
+}
+
+@keyframes animate-in-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: animate-in-fade 0.3s ease-out;
+}
+
+.fade-in {
+  animation-name: animate-in-fade;
+}

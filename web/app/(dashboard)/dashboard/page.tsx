@@ -5,7 +5,8 @@ import { RecentTransactions } from "./recent-transactions";
 import { ActiveGroups } from "./active-groups";
 import { PendingSettlements } from "./pending-settlements";
 import { InsightCard } from "./insight-card";
-import type { Group, Settlement } from "@/lib/types";
+import { AccountsOverview } from "./accounts-overview";
+import type { Group, Settlement, Account } from "@/lib/types";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -31,6 +32,7 @@ export default async function DashboardPage() {
     { data: owedToMe },
     { data: iOwe },
     { data: pendingSettlements },
+    { data: userAccounts },
   ] = await Promise.all([
     supabase
       .from("expenses")
@@ -68,6 +70,12 @@ export default async function DashboardPage() {
       .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
       .eq("status", "pending")
       .limit(5),
+    supabase
+      .from("accounts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .limit(4),
   ]);
 
   const monthlySpend = (personalExpenses || []).reduce(
@@ -114,6 +122,9 @@ export default async function DashboardPage() {
         </div>
 
         <div className="col-span-12 lg:col-span-5 space-y-8">
+          <AccountsOverview
+            accounts={(userAccounts || []) as Account[]}
+          />
           <ActiveGroups
             groups={(groups || []).map((g) => g.groups as unknown as Group).filter(Boolean)}
           />

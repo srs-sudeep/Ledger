@@ -2,25 +2,28 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
-import type { Category, Account } from "@/lib/types";
+import type { Account } from "@/lib/types";
 
-interface AddExpenseButtonProps {
-  categories: Category[];
-  accounts?: Account[];
+interface AddIncomeButtonProps {
+  accounts: Account[];
   userId: string;
 }
 
-export function AddExpenseButton({ categories, accounts = [], userId }: AddExpenseButtonProps) {
+export function AddIncomeButton({ accounts, userId }: AddIncomeButtonProps) {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
+  const [source, setSource] = useState("");
   const [amount, setAmount] = useState("");
-  const [categoryId, setCategoryId] = useState("");
   const [accountId, setAccountId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
@@ -34,15 +37,13 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
 
     const cents = Math.round(parseFloat(amount) * 100);
 
-    const { error } = await supabase.from("expenses").insert({
-      title,
-      amount: cents,
-      category_id: categoryId || null,
+    const { error } = await supabase.from("income").insert({
+      user_id: userId,
       account_id: accountId || null,
+      amount: cents,
+      source,
       date,
       notes: notes || null,
-      payer_id: userId,
-      group_id: null,
     });
 
     if (!error) {
@@ -51,14 +52,14 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
         if (account) {
           await supabase
             .from("accounts")
-            .update({ balance: account.balance - cents })
+            .update({ balance: account.balance + cents })
             .eq("id", accountId);
         }
       }
+
       setOpen(false);
-      setTitle("");
+      setSource("");
       setAmount("");
-      setCategoryId("");
       setAccountId("");
       setNotes("");
       router.refresh();
@@ -67,11 +68,6 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
     setLoading(false);
   };
 
-  const categoryOptions = [
-    { value: "", label: "Select category" },
-    ...categories.map((c) => ({ value: c.id, label: c.name })),
-  ];
-
   const accountOptions = [
     { value: "", label: "No account" },
     ...accounts.map((a) => ({ value: a.id, label: a.name })),
@@ -79,29 +75,29 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="gap-2">
-        <Plus size={18} />
-        Add Expense
+      <Button onClick={() => setOpen(true)} variant="secondary" className="gap-2">
+        <TrendingUp size={18} />
+        Add Income
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent onClose={() => setOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Add Personal Expense</DialogTitle>
+            <DialogTitle>Add Income</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              id="title"
-              label="Description"
-              placeholder="e.g. Whole Foods Market"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              id="source"
+              label="Source"
+              placeholder="e.g. Salary, Freelance"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
               required
             />
 
             <Input
-              id="amount"
+              id="incomeAmount"
               label="Amount ($)"
               type="number"
               step="0.01"
@@ -113,15 +109,15 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
             />
 
             <Select
-              id="category"
-              label="Category"
-              options={categoryOptions}
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              id="depositTo"
+              label="Deposit to"
+              options={accountOptions}
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
             />
 
             <Input
-              id="date"
+              id="incomeDate"
               label="Date"
               type="date"
               value={date}
@@ -129,18 +125,8 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
               required
             />
 
-            {accounts.length > 0 && (
-              <Select
-                id="payFrom"
-                label="Pay from"
-                options={accountOptions}
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-              />
-            )}
-
             <Input
-              id="notes"
+              id="incomeNotes"
               label="Notes (optional)"
               placeholder="Any additional details..."
               value={notes}
@@ -157,7 +143,7 @@ export function AddExpenseButton({ categories, accounts = [], userId }: AddExpen
                 Cancel
               </Button>
               <Button type="submit" className="flex-1" disabled={loading}>
-                {loading ? "Saving..." : "Save Expense"}
+                {loading ? "Saving..." : "Add Income"}
               </Button>
             </div>
           </form>

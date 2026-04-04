@@ -13,25 +13,60 @@ import type { GroupMember } from "@/lib/types";
 
 interface GroupMembersProps {
   members: GroupMember[];
+  groupId: string;
   isAdmin: boolean;
 }
 
-export function GroupMembers({ members, isAdmin }: GroupMembersProps) {
+export function GroupMembers({ members, groupId, isAdmin }: GroupMembersProps) {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const router = useRouter();
   const supabase = createClient();
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setSuccess("");
 
-    // Look up user by email (requires profiles to have email or using auth admin)
-    // For now we'd use a simulated flow - in production, use Supabase Edge Function for invites
-    setLoading(false);
-    setShowInvite(false);
+    const { data: profile, error: lookupError } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("email", inviteEmail.trim().toLowerCase())
+      .single();
+
+    if (lookupError || !profile) {
+      setError("No registered user found with that email. They must sign up first.");
+      setLoading(false);
+      return;
+    }
+
+    const alreadyMember = members.some((m) => m.user_id === profile.id);
+    if (alreadyMember) {
+      setError("This user is already a member of this group.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("group_members").insert({
+      group_id: groupId,
+      user_id: profile.id,
+      role: "member",
+    });
+
+    if (insertError) {
+      setError("Failed to add member. You may not have permission.");
+      setLoading(false);
+      return;
+    }
+
+    setSuccess(`${profile.full_name || inviteEmail} has been added to the group!`);
     setInviteEmail("");
+    setLoading(false);
+    router.refresh();
   };
 
   const handleRemoveMember = async (memberId: string) => {
@@ -95,12 +130,18 @@ export function GroupMembers({ members, isAdmin }: GroupMembersProps) {
         </div>
       </Card>
 
-      <Dialog open={showInvite} onOpenChange={setShowInvite}>
-        <DialogContent onClose={() => setShowInvite(false)}>
+      <Dialog open={showInvite} onOpenChange={(open) => {
+        setShowInvite(open);
+        if (!open) { setError(""); setSuccess(""); }
+      }}>
+        <DialogContent onClose={() => { setShowInvite(false); setError(""); setSuccess(""); }}>
           <DialogHeader>
             <DialogTitle>Invite Member</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleInvite} className="space-y-4">
+            <p className="text-xs text-secondary">
+              Enter the email of a registered user to add them to this group.
+            </p>
             <Input
               id="inviteEmail"
               label="Email Address"
@@ -110,17 +151,27 @@ export function GroupMembers({ members, isAdmin }: GroupMembersProps) {
               onChange={(e) => setInviteEmail(e.target.value)}
               required
             />
+            {error && (
+              <p className="text-xs text-error bg-error-container/20 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+            {success && (
+              <p className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
+                {success}
+              </p>
+            )}
             <div className="flex gap-3">
               <Button
                 type="button"
                 variant="secondary"
                 className="flex-1"
-                onClick={() => setShowInvite(false)}
+                onClick={() => { setShowInvite(false); setError(""); setSuccess(""); }}
               >
                 Cancel
               </Button>
               <Button type="submit" className="flex-1" disabled={loading}>
-                {loading ? "Inviting..." : "Send Invite"}
+                {loading ? "Adding..." : "Add Member"}
               </Button>
             </div>
           </form>

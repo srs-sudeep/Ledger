@@ -2,6 +2,7 @@ export interface Profile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  email: string | null;
   default_currency: string;
   created_at: string;
   updated_at: string;
@@ -45,10 +46,12 @@ export interface Expense {
   date: string;
   payer_id: string;
   group_id: string | null;
+  account_id: string | null;
   notes: string | null;
   created_at: string;
   categories?: Category;
   profiles?: Profile;
+  accounts?: Account;
 }
 
 export interface ExpenseSplit {
@@ -87,4 +90,32 @@ export interface DebtSimplifierResponse {
 export interface GroupWithBalance extends Group {
   memberCount: number;
   userBalance: number;
+}
+
+// Accounts ledger
+export type AccountType = "bank" | "credit_card" | "debit_card" | "wallet" | "cash" | "other";
+
+export interface Account {
+  id: string;
+  user_id: string;
+  name: string;
+  type: AccountType;
+  balance: number;
+  currency: string;
+  icon: string | null;
+  color: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Income {
+  id: string;
+  user_id: string;
+  account_id: string | null;
+  amount: number;
+  source: string;
+  date: string;
+  notes: string | null;
+  created_at: string;
 }

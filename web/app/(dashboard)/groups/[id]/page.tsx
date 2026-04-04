@@ -73,6 +73,7 @@ export default async function GroupDetailPage({
         <div className="col-span-12 lg:col-span-5 space-y-6">
           <GroupMembers
             members={members || []}
+            groupId={params.id}
             isAdmin={currentMembership.role === "admin"}
           />
           <SettleUpSection

@@ -16,23 +16,32 @@ export default async function PersonalPage() {
     .toISOString()
     .split("T")[0];
 
-  const [{ data: expenses }, { data: categories }, { data: monthlyByCategory }] =
-    await Promise.all([
-      supabase
-        .from("expenses")
-        .select("*, categories(*)")
-        .eq("payer_id", user.id)
-        .is("group_id", null)
-        .order("date", { ascending: false })
-        .limit(50),
-      supabase.from("categories").select("*").order("name"),
-      supabase
-        .from("expenses")
-        .select("amount, category_id, categories(name, icon, color)")
-        .eq("payer_id", user.id)
-        .is("group_id", null)
-        .gte("date", startOfMonth),
-    ]);
+  const [
+    { data: expenses },
+    { data: categories },
+    { data: monthlyByCategory },
+    { data: accounts },
+  ] = await Promise.all([
+    supabase
+      .from("expenses")
+      .select("*, categories(*)")
+      .eq("payer_id", user.id)
+      .is("group_id", null)
+      .order("date", { ascending: false })
+      .limit(50),
+    supabase.from("categories").select("*").order("name"),
+    supabase
+      .from("expenses")
+      .select("amount, category_id, categories(name, icon, color)")
+      .eq("payer_id", user.id)
+      .is("group_id", null)
+      .gte("date", startOfMonth),
+    supabase
+      .from("accounts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("name"),
+  ]);
 
   const categoryTotals = (monthlyByCategory || []).reduce(
     (acc, e) => {
@@ -60,7 +69,7 @@ export default async function PersonalPage() {
             Track and manage your individual spending
           </p>
         </div>
-        <AddExpenseButton categories={categories || []} userId={user.id} />
+        <AddExpenseButton categories={categories || []} accounts={accounts || []} userId={user.id} />
       </div>
 
       <BudgetProgress categoryTotals={categoryTotals} />

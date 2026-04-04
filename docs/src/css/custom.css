@@ -1,0 +1,35 @@
+:root {
+  --ifm-color-primary: #415f91;
+  --ifm-color-primary-dark: #3a5682;
+  --ifm-color-primary-darker: #37517b;
+  --ifm-color-primary-darkest: #2d4365;
+  --ifm-color-primary-light: #4868a0;
+  --ifm-color-primary-lighter: #4b6da7;
+  --ifm-color-primary-lightest: #587dba;
+  --ifm-background-color: #faf8ff;
+  --ifm-font-family-base: "Inter", system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-family: "Manrope", system-ui, -apple-system, sans-serif;
+  --ifm-code-font-size: 95%;
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #aac7ff;
+  --ifm-color-primary-dark: #8fb6ff;
+  --ifm-color-primary-darker: #82adff;
+  --ifm-color-primary-darkest: #4d8fff;
+  --ifm-color-primary-light: #c5d8ff;
+  --ifm-color-primary-lighter: #d2e1ff;
+  --ifm-color-primary-lightest: #ffffff;
+  --ifm-background-color: #111318;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+[data-theme="dark"] .docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.3);
+}
