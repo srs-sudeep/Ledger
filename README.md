@@ -65,7 +65,7 @@ lyari/
 
 ## Deployment
 
-- **Web**: Push to GitHub, import in [Vercel](https://vercel.com). `vercel.json` sets `rootDirectory: "web"` automatically.
+- **Web**: Push to GitHub, import in [Vercel](https://vercel.com). Set **Root Directory** to `web` in the project settings (or use the `vercel.json` at the repo root).
 - **Mobile**: Build APK with `flutter build apk --release --dart-define=...`
 - **Edge Functions**: `supabase functions deploy debt-simplifier --project-ref YOUR_REF`
 

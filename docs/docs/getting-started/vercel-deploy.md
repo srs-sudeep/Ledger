@@ -4,13 +4,13 @@ sidebar_position: 5
 
 # Vercel Deployment
 
-The web app is configured for Vercel deployment via a `vercel.json` at the repo root.
+The repo includes a `vercel.json` at the root that tells Vercel how to build and output the Next.js web app.
 
 ## Setup
 
 1. Push the repo to GitHub / GitLab / Bitbucket.
 2. In [Vercel](https://vercel.com) > **Add New > Project** > import the repo.
-3. The `vercel.json` file sets `rootDirectory` to `web`, so Vercel auto-detects the Next.js project.
+3. Set **Root Directory** to `web` in the Vercel project settings (under **General > Root Directory**), or leave it at the repo root and rely on the `vercel.json` build/output commands.
 4. Add environment variables:
 
 | Name | Value |
