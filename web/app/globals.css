@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #faf8ff;
+    --foreground: #131b2e;
+  }
+
+  body {
+    background-color: #faf8ff;
+    color: #131b2e;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cta-gradient {
+    background: linear-gradient(to bottom, #000000, #00174b);
+  }
+
+  .glass {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .ghost-border {
+    outline: 1px solid rgba(198, 198, 205, 0.15);
+  }
+
+  .shadow-ambient {
+    box-shadow: 0 12px 40px -12px rgba(19, 27, 46, 0.08);
+  }
+}
