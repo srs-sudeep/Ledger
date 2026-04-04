@@ -103,6 +103,62 @@ class SupabaseService {
   }
 
   // Groups
+  static Future<Group> createGroup({
+    required String name,
+    required String type,
+    required String currency,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('Not signed in');
+    final res = await client
+        .from('groups')
+        .insert({
+          'name': name,
+          'type': type,
+          'currency': currency,
+          'created_by': uid,
+        })
+        .select()
+        .single();
+    final group = Group.fromJson(res);
+    await client.from('group_members').insert({
+      'group_id': group.id,
+      'user_id': uid,
+      'role': 'admin',
+    });
+    return group;
+  }
+
+  static Future<String> inviteMemberByEmail({
+    required String groupId,
+    required String email,
+  }) async {
+    final res = await client
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('email', email.trim().toLowerCase())
+        .single();
+    final profileId = res['id'] as String;
+    final existing = await client
+        .from('group_members')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('user_id', profileId);
+    if ((existing as List).isNotEmpty) {
+      throw Exception('Already a member');
+    }
+    await client.from('group_members').insert({
+      'group_id': groupId,
+      'user_id': profileId,
+      'role': 'member',
+    });
+    return res['full_name'] as String? ?? email;
+  }
+
+  static Future<void> removeMember(String membershipId) async {
+    await client.from('group_members').delete().eq('id', membershipId);
+  }
+
   static Future<List<Map<String, dynamic>>> getUserGroups() async {
     final uid = currentUserId;
     if (uid == null) return [];

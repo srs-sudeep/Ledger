@@ -109,6 +109,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       if (_selectedAccountId != null) {
         ref.invalidate(accountsProvider);
       }
+      if (widget.groupId != null) {
+        ref.invalidate(groupExpensesProvider(widget.groupId!));
+      }
 
       if (mounted) context.pop();
     } catch (_) {
