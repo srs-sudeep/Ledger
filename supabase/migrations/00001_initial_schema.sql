@@ -1,5 +1,5 @@
 -- ============================================================
--- Lyari / The Ledger — Initial Schema Migration
+-- Lyari — Initial Schema Migration
 -- ============================================================
 
 -- Enums

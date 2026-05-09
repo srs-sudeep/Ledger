@@ -10,7 +10,7 @@ The dashboard provides a unified overview of the user's financial state.
 
 ## Header
 
-The dashboard header displays **"The Ledger"** title on the left and a **"Sign out"** button on the right. The sign-out action is also available in the sidebar navigation.
+The dashboard header displays the **Lyari** title on the left and a **"Sign out"** button on the right. The sign-out action is also available in the sidebar navigation.
 
 ## Sidebar
 

@@ -43,7 +43,7 @@ export default function AppleIcon() {
             letterSpacing: "0.02em",
           }}
         >
-          Ledger
+          Lyari
         </span>
       </div>
     ),

@@ -1,6 +1,6 @@
-# The Ledger — Mobile
+# Lyari — Mobile
 
-Flutter companion app for **The Ledger** (Lyari): personal expenses, accounts, group splits, and debt simplification against the same Supabase backend as the web app.
+Flutter companion app for **Lyari**: personal expenses, accounts, group splits, and debt simplification against the same Supabase backend as the web app.
 
 ## Stack
 

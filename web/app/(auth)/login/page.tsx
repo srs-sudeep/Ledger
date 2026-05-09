@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SITE_NAME } from "@/lib/site";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,7 @@ export default function LoginPage() {
           Welcome back
         </h1>
         <p className="text-secondary text-sm">
-          Sign in to your Ledger account
+          Sign in to your {SITE_NAME} account
         </p>
       </div>
 

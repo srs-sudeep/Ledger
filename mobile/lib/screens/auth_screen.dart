@@ -90,8 +90,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _isLogin
-                      ? 'Sign in to your Ledger account'
-                      : 'Start tracking expenses with The Ledger',
+                      ? 'Sign in to your Lyari account'
+                      : 'Start tracking expenses with Lyari',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 32),

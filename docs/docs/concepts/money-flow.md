@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Money Flow
 
-This page explains the conceptual model behind how money moves in The Ledger.
+This page explains the conceptual model behind how money moves in Lyari.
 
 ## Accounts as Pots
 
@@ -50,7 +50,7 @@ To "pay off" a credit card, record an income entry deposited into the credit car
 
 ## No Automatic Bank Feeds
 
-The Ledger does **not** connect to banks or payment providers. There are no automatic imports, no Plaid integration, no transaction syncing. Every entry -- income, expense, account -- is entered manually by the user.
+Lyari does **not** connect to banks or payment providers. There are no automatic imports, no Plaid integration, no transaction syncing. Every entry -- income, expense, account -- is entered manually by the user.
 
 This is by design: the app is a personal bookkeeping tool, not a bank aggregator.
 
@@ -88,4 +88,4 @@ graph TD
   end
 ```
 
-All of this is manual entry. The Ledger trusts the user to be the source of truth for their own finances.
+All of this is manual entry. Lyari trusts the user to be the source of truth for their own finances.

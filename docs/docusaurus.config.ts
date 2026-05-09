@@ -3,8 +3,8 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "The Ledger",
-  tagline: "Advanced Expense Platform Documentation",
+  title: "Lyari",
+  tagline: "All-in-one ledger — documentation",
   favicon: "img/favicon.ico",
   url: "https://lyari-docs.vercel.app",
   baseUrl: "/",
@@ -41,7 +41,7 @@ const config: Config = {
 
   themeConfig: {
     navbar: {
-      title: "The Ledger",
+      title: "Lyari",
       items: [
         {
           type: "docSidebar",
@@ -74,7 +74,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright ${new Date().getFullYear()} The Ledger. Built with Docusaurus.`,
+      copyright: `Copyright ${new Date().getFullYear()} Lyari. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

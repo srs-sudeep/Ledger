@@ -3,9 +3,9 @@ slug: /
 sidebar_position: 1
 ---
 
-# The Ledger
+# Lyari
 
-**The Ledger** (codename *Lyari*) is a comprehensive financial platform combining personal expense tracking with Splitwise-style group expense sharing. Built on a serverless BaaS architecture with zero hosting costs.
+**Lyari** is an all-in-one ledger—a comprehensive financial platform combining personal expense tracking with Splitwise-style group expense sharing. Built on a serverless BaaS architecture with zero hosting costs.
 
 ## Architecture
 

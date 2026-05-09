@@ -3,14 +3,14 @@
  * Set NEXT_PUBLIC_SITE_URL in production (e.g. https://your-app.vercel.app).
  */
 
-export const SITE_NAME = "The Ledger";
+export const SITE_NAME = "Lyari";
 
 /** Short line under the name (meta, OG, manifest). */
 export const SITE_TAGLINE =
-  "Personal finance and group expense sharing—clear balances, zero spreadsheet chaos.";
+  "All-in-one ledger—personal & group finances, clear balances, zero spreadsheet chaos.";
 
 /** Sidebar / compact UI line. */
-export const SITE_UI_TAGLINE = "Personal & group money";
+export const SITE_UI_TAGLINE = "All-in-one ledger";
 
 /** Primary meta description (~155 chars for Google). */
 export const SITE_DESCRIPTION =

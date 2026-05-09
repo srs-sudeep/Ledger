@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Design System
 
-The Ledger follows **"The Precision Curator"** design language -- Material Design 3 logic with tonal depth over structural lines.
+Lyari follows **"The Precision Curator"** design language -- Material Design 3 logic with tonal depth over structural lines.
 
 ## Core Principles
 

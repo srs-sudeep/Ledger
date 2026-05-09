@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Prerequisites
 
-Before setting up The Ledger, ensure you have the following installed:
+Before setting up Lyari, ensure you have the following installed:
 
 ## Required
 

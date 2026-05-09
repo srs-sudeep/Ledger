@@ -1,4 +1,4 @@
-# The Ledger — Advanced Expense Platform
+# Lyari — All-in-one ledger
 
 A comprehensive financial platform combining personal expense tracking with Splitwise-style group expense sharing. Built on a **serverless BaaS architecture** with zero hosting costs.
 

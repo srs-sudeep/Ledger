@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   const base = getSiteUrl();
   return {
     name: SITE_NAME,
-    short_name: "Ledger",
+    short_name: SITE_NAME,
     description: SITE_DESCRIPTION,
     start_url: "/",
     display: "standalone",

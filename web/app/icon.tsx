@@ -5,7 +5,7 @@ export const runtime = "edge";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-/** App icon — gradient “L” mark aligned with The Ledger brand. */
+/** App icon — gradient “L” mark for Lyari. */
 export default function Icon() {
   return new ImageResponse(
     (

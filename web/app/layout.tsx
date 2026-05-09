@@ -7,6 +7,7 @@ import {
   SITE_KEYWORDS,
   SITE_NAME,
   SITE_TWITTER_HANDLE,
+  SITE_UI_TAGLINE,
 } from "@/lib/site";
 import "./globals.css";
 
@@ -36,7 +37,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${SITE_NAME} | Personal & group finance`,
+    default: `${SITE_NAME} | ${SITE_UI_TAGLINE}`,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -60,12 +61,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Personal & group finance`,
+    title: `${SITE_NAME} — ${SITE_UI_TAGLINE}`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Personal & group finance`,
+    title: `${SITE_NAME} — ${SITE_UI_TAGLINE}`,
     description: SITE_DESCRIPTION,
     ...(SITE_TWITTER_HANDLE
       ? { site: SITE_TWITTER_HANDLE, creator: SITE_TWITTER_HANDLE }
