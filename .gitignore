@@ -1,10 +1,8 @@
 # Dependencies
 node_modules/
 
-# Environment files
+# Environment (active copy — use .env.dev or .env.prod as source)
 .env
-.env.local
-.env*.local
 
 # OS files
 .DS_Store
@@ -17,9 +15,6 @@ Thumbs.db
 *.swo
 
 # Build artifacts
-.next/
-out/
-build/
 dist/
 .docusaurus/
 
@@ -28,6 +23,9 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+bun-debug.log*
 
-# Misc
+# Bun
+frontend/node_modules/
+frontend/dist/
 *.tsbuildinfo

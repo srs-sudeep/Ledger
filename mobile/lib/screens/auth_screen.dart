@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
+import '../providers/auth_notifier.dart';
 import '../theme/app_theme.dart';
+
+const _googleClientId = String.fromEnvironment('GOOGLE_CLIENT_ID', defaultValue: '');
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -13,16 +16,20 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLogin = true;
   bool _loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   String? _error;
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _nameController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _nameController.dispose();
     super.dispose();
   }
@@ -34,22 +41,48 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
+      if (!_isLogin) {
+        if (_passwordController.text.length < 6) {
+          throw Exception('Password must be at least 6 characters');
+        }
+        if (_passwordController.text != _confirmPasswordController.text) {
+          throw Exception('Passwords do not match');
+        }
+      }
+
       if (_isLogin) {
-        await SupabaseService.signIn(
+        await ApiService.signIn(
           _emailController.text.trim(),
           _passwordController.text,
         );
       } else {
-        await SupabaseService.signUp(
+        await ApiService.signUp(
           _emailController.text.trim(),
           _passwordController.text,
           _nameController.text.trim(),
         );
       }
 
+      authNotifier.refresh();
       if (mounted) context.go('/dashboard');
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _handleGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await ApiService.signInWithGoogle();
+      authNotifier.refresh();
+      if (mounted) context.go('/dashboard');
+    } catch (e) {
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -94,7 +127,23 @@ class _AuthScreenState extends State<AuthScreen> {
                       : 'Start tracking expenses with Lyari',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 32),
+                if (!_isLogin) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'No verification email is sent on self-hosted Lyari. '
+                      'Your account is active immediately after sign-up.',
+                      style: TextStyle(color: AppColors.secondary, fontSize: 12),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
 
                 if (!_isLogin) ...[
                   TextField(
@@ -115,9 +164,36 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 TextField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                  obscureText: _obscurePassword,
                 ),
+
+                if (!_isLogin) ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscureConfirm = !_obscureConfirm),
+                      ),
+                    ),
+                    obscureText: _obscureConfirm,
+                  ),
+                ],
 
                 if (_error != null) ...[
                   const SizedBox(height: 12),
@@ -158,29 +234,36 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => SupabaseService.signInWithGoogle(),
-                    icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: const Text('Continue with Google'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                if (_googleClientId.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _loading ? null : _handleGoogle,
+                      icon: const Icon(Icons.g_mobiledata, size: 24),
+                      label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 24),
+                ] else ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Google sign-in: pass GOOGLE_CLIENT_ID via --dart-define',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.secondary, fontSize: 11),
+                  ),
+                ],
 
                 TextButton(
                   onPressed: () => setState(() {
                     _isLogin = !_isLogin;
                     _error = null;
+                    _confirmPasswordController.clear();
                   }),
                   child: Text(
                     _isLogin

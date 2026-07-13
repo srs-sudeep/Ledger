@@ -1,61 +1,61 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 
 final profileProvider = FutureProvider<Profile?>((ref) async {
-  return SupabaseService.getProfile();
+  return ApiService.getProfile();
 });
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
-  return SupabaseService.getCategories();
+  return ApiService.getCategories();
 });
 
 final personalExpensesProvider = FutureProvider<List<Expense>>((ref) async {
-  return SupabaseService.getPersonalExpenses(limit: 50);
+  return ApiService.getPersonalExpenses(limit: 50);
 });
 
 final recentExpensesProvider = FutureProvider<List<Expense>>((ref) async {
-  return SupabaseService.getPersonalExpenses(limit: 5);
+  return ApiService.getPersonalExpenses(limit: 5);
 });
 
 final userGroupsProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  return SupabaseService.getUserGroups();
+  return ApiService.getUserGroups();
 });
 
 final groupProvider =
     FutureProvider.family<Group, String>((ref, groupId) async {
-  return SupabaseService.getGroup(groupId);
+  return ApiService.getGroup(groupId);
 });
 
 final totalOwedToMeProvider = FutureProvider<int>((ref) async {
-  return SupabaseService.getTotalOwedToMe();
+  return ApiService.getTotalOwedToMe();
 });
 
 final totalIOweProvider = FutureProvider<int>((ref) async {
-  return SupabaseService.getTotalIOwe();
+  return ApiService.getTotalIOwe();
 });
 
 final groupExpensesProvider =
     FutureProvider.family<List<Expense>, String>((ref, groupId) async {
-  return SupabaseService.getGroupExpenses(groupId);
+  return ApiService.getGroupExpenses(groupId);
 });
 
 final groupMembersProvider =
     FutureProvider.family<List<GroupMember>, String>((ref, groupId) async {
-  return SupabaseService.getGroupMembers(groupId);
+  return ApiService.getGroupMembers(groupId);
 });
 
 final simplifiedDebtsProvider =
     FutureProvider.family<List<SimplifiedTransaction>, String>(
         (ref, groupId) async {
-  return SupabaseService.getSimplifiedDebts(groupId);
+  return ApiService.getSimplifiedDebts(groupId);
 });
 
 final accountsProvider = FutureProvider<List<Account>>((ref) async {
-  return SupabaseService.getAccounts();
+  return ApiService.getAccounts();
 });
 
 final recentIncomeProvider = FutureProvider<List<Income>>((ref) async {
-  return SupabaseService.getRecentIncome();
+  return ApiService.getRecentIncome();
 });

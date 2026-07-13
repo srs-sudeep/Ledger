@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../currency_format.dart';
 import '../providers/data_providers.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
+import '../providers/auth_notifier.dart';
 import '../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -45,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  SupabaseService.client.auth.currentUser?.email ?? '',
+                  ApiService.currentEmail ?? '',
                   style: const TextStyle(color: AppColors.secondary, fontSize: 14),
                 ),
               ],
@@ -80,7 +81,7 @@ class ProfileScreen extends ConsumerWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                await SupabaseService.signOut();
+                await authNotifier.signOut();
                 if (context.mounted) context.go('/auth');
               },
               icon: const Icon(Icons.logout, color: AppColors.error),
@@ -112,7 +113,7 @@ class ProfileScreen extends ConsumerWidget {
           return ListTile(
             title: Text(c),
             onTap: () async {
-              await SupabaseService.updateProfile(currency: c);
+              await ApiService.updateProfile(currency: c);
               ref.invalidate(profileProvider);
               if (ctx.mounted) Navigator.pop(ctx);
             },
@@ -144,7 +145,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              await SupabaseService.updateProfile(
+              await ApiService.updateProfile(
                 fullName: controller.text.trim(),
               );
               ref.invalidate(profileProvider);

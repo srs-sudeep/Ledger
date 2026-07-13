@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../currency_format.dart';
 import '../providers/data_providers.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
@@ -22,7 +22,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final groupAsync = ref.watch(groupProvider(groupId));
     final expenses = ref.watch(groupExpensesProvider(groupId));
     final members = ref.watch(groupMembersProvider(groupId));
-    final userId = SupabaseService.currentUserId;
+    final userId = ApiService.currentUserId;
 
     return Scaffold(
       appBar: AppBar(
@@ -316,7 +316,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       });
                       try {
                         final name =
-                            await SupabaseService.inviteMemberByEmail(
+                            await ApiService.inviteMemberByEmail(
                           groupId: groupId,
                           email: email,
                         );
@@ -351,9 +351,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   // ─── Settle up bottom sheet ────────────────────────────────────────
   Future<void> _showSettleDialog(BuildContext context, WidgetRef ref) async {
-    final debts = await SupabaseService.getSimplifiedDebts(groupId);
+    final debts = await ApiService.getSimplifiedDebts(groupId);
     final members = ref.read(groupMembersProvider(groupId)).value ?? [];
-    final userId = SupabaseService.currentUserId;
+    final userId = ApiService.currentUserId;
     final group = await ref.read(groupProvider(groupId).future);
     final currency = group.currency;
 
@@ -441,7 +441,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           padding: const EdgeInsets.only(left: 8),
                           child: ElevatedButton(
                             onPressed: () async {
-                              await SupabaseService.settleUp(
+                              await ApiService.settleUp(
                                 fromUserId: txn.from,
                                 toUserId: txn.to,
                                 amount: txn.amount,

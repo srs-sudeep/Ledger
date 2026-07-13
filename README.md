@@ -1,72 +1,135 @@
 # Lyari — All-in-one ledger
 
-A comprehensive financial platform combining personal expense tracking with Splitwise-style group expense sharing. Built on a **serverless BaaS architecture** with zero hosting costs.
+Self-hosted expense tracker + group splitting. **PostgreSQL**, **FastAPI**, **React (Bun)**, **Flutter**.
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Database & Auth | Supabase (PostgreSQL, GoTrue, RLS) |
-| Web Dashboard | Next.js 14, React, Tailwind CSS, Recharts |
-| Mobile App | Flutter (Material 3), Riverpod, go_router |
-| Edge Functions | Deno (TypeScript) — Debt Simplifier |
-
-## Quick Start
+## Quick start
 
 ```bash
-# 1. Set up Supabase: apply migrations in SQL Editor
-#    supabase/migrations/00001_initial_schema.sql
-#    supabase/migrations/00002_fix_rls_and_accounts.sql
-#    supabase/seed.sql
+# Pick environment (copies template → .env)
+./scripts/env-use.sh dev    # local development
+./scripts/env-use.sh prod   # home server (edit secrets in .env first)
 
-# 2. Web app
-cd web
-cp .env.local.example .env.local   # add your Supabase URL + anon key
-npm install && npm run dev
+# Dev — hot reload API + Vite, Postgres on localhost:5432
+docker compose -f docker-compose.dev.yml up --build
 
-# 3. Mobile app (optional)
+# Prod — nginx + optimized images
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+| Mode | Web | API | API docs |
+|------|-----|-----|----------|
+| Dev | http://localhost:5173 | http://localhost:8000 | http://localhost:8000/docs |
+| Prod | http://YOUR_SERVER_IP | http://YOUR_SERVER_IP:8000 | http://YOUR_SERVER_IP:8000/docs |
+
+## Environment files
+
+| File | Purpose |
+|------|---------|
+| `.env.dev` | Development defaults (committed) |
+| `.env.prod` | Production template — **change passwords & JWT secret** |
+| `.env` | Active config (gitignored) — copy from dev or prod |
+
+```bash
+cp .env.dev .env          # or: ./scripts/env-use.sh dev
+cp .env.prod .env         # or: ./scripts/env-use.sh prod
+```
+
+All services (Postgres, API, web, mobile build) read from the single root `.env`.
+
+## Docker Compose files
+
+| File | Use case |
+|------|----------|
+| `docker-compose.dev.yml` | Hot reload, source mounts, Postgres exposed |
+| `docker-compose.prod.yml` | Production images, nginx, persistent volume |
+
+## Local development (without full Docker)
+
+### API
+
+```bash
+docker compose -f docker-compose.dev.yml up db -d
+cd backend && python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export $(grep -v '^#' ../.env | xargs)
+uvicorn app.main:app --reload --port 8000
+```
+
+### Web (Bun)
+
+```bash
+cd frontend
+bun install
+bun run dev    # http://localhost:5173
+```
+
+### Mobile
+
+```bash
 cd mobile
 flutter pub get
-flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP:8000
 ```
 
-## Documentation
+## Can Docker run Flutter?
 
-See the **[full documentation](docs/)** for detailed setup guides, architecture, database schema, API reference, and design system documentation.
+**Build yes, run day-to-day no.**
 
-```bash
-cd docs
-npm install
-npm start    # opens at http://localhost:3000
-```
+| Task | Docker? | Notes |
+|------|---------|-------|
+| Build Android APK | Yes | `docker compose -f docker-compose.prod.yml --profile mobile-build run --rm mobile-build` |
+| Run on phone/emulator | No (use host) | Install Flutter locally; point at API with `API_BASE_URL` |
+| iOS build/simulator | No | Requires macOS + Xcode |
 
-## Project Structure
+Flutter in Docker is for **CI/APK builds** only. For development, run `flutter run` on your machine.
+
+## Project structure
 
 ```
 lyari/
-├── supabase/          # Database migrations, Edge Functions, seed data
-├── web/               # Next.js 14 App Router dashboard
-├── mobile/            # Flutter mobile companion app
-├── docs/              # Docusaurus documentation site
-└── stitch/            # Design system references
+├── backend/                 # FastAPI
+│   ├── Dockerfile           # prod
+│   └── Dockerfile.dev       # dev (uvicorn --reload)
+├── frontend/                # Vite + React (Bun)
+│   ├── Dockerfile           # prod (bun build + nginx)
+│   └── Dockerfile.dev       # dev (bun run dev)
+├── mobile/                  # Flutter app
+│   └── Dockerfile           # APK build only
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── .env.dev / .env.prod
+└── scripts/env-use.sh
 ```
 
-## Key Features
+## Environment variables
 
-- **Personal Expense Tracking** — Filterable data table, category budgets
-- **Accounts Ledger** — Bank accounts, credit/debit cards, wallets (GPay, PayPal, cash)
-- **Income Tracking** — Record earnings, auto-update account balances
-- **Group Expense Sharing** — Equal/exact/percentage splits
-- **Invite by Email** — Add registered users to groups by email
-- **Debt Simplification** — Min cash flow algorithm via Edge Function
-- **Analytics** — Category pie charts, burn rate trends, comparison charts
-- **Mobile-First Add** — Fast expense entry with numpad UI
-- **Loading States** — Skeleton loading screens for every route
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `POSTGRES_*` | db | Database credentials |
+| `DATABASE_URL` | api | SQLAlchemy connection string |
+| `JWT_SECRET` | api | Auth token signing (change in prod) |
+| `CORS_ORIGINS` | api | Comma-separated allowed web origins |
+| `VITE_API_URL` | web build | Empty when nginx/docker proxy handles `/api` |
+| `API_BASE_URL` | mobile | FastAPI URL for `--dart-define` |
+| `GOOGLE_CLIENT_ID` | api, web, mobile | Optional Google OAuth client ID |
+| `PORTAINER_PORT` | portainer | Container UI (default 9000) |
+| `API_PORT` / `WEB_PORT` | compose | Host port mappings |
 
-## Deployment
+See `.env.dev` and `.env.prod` for full list.
 
-- **Web**: Push to GitHub, import in [Vercel](https://vercel.com). In **Project Settings > General**, set **Root Directory** to `web` (required for this monorepo). Vercel reads [`web/vercel.json`](web/vercel.json); do **not** add a root `vercel.json` that runs `cd web` — that breaks when Root Directory is already `web`.
-- **Mobile**: Build APK with `flutter build apk --release --dart-define=...`
-- **Edge Functions**: `supabase functions deploy debt-simplifier --project-ref YOUR_REF`
+## Portainer (container logs)
 
-See [Vercel Deploy Guide](docs/docs/getting-started/vercel-deploy.md) and [Flutter Setup](docs/docs/getting-started/flutter-setup.md) for details.
+Open **http://localhost:9000** → create admin on first visit → **Containers** → pick `lyari-dev-api-1` (or web/db) → **Logs**.
+
+## Auth
+
+- **Show password** — eye icon on all password fields
+- **Confirm password** — required when registering
+- **Email verification** — not sent on self-hosted; account is active immediately (email format only)
+- **Google sign-in** — set `GOOGLE_CLIENT_ID` in `.env` ([Google Cloud Console](https://console.cloud.google.com/apis/credentials))
+
+## Production notes
+
+- Edit `.env` after `env-use prod`: strong `POSTGRES_PASSWORD`, `JWT_SECRET`, `CORS_ORIGINS`, `API_BASE_URL`.
+- Back up the `pgdata` Docker volume.
+- Web on port **80** proxies `/api` to FastAPI internally.

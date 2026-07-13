@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../currency_format.dart';
 import '../providers/data_providers.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
@@ -86,17 +86,17 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
           };
         }).toList();
 
-        await SupabaseService.addGroupExpense(
+        await ApiService.addGroupExpense(
           title: _titleController.text.trim(),
           amount: cents,
           categoryId: _selectedCategoryId,
           date: date,
           groupId: widget.groupId!,
-          payerId: SupabaseService.currentUserId!,
+          payerId: ApiService.currentUserId!,
           splits: splits,
         );
       } else {
-        await SupabaseService.addPersonalExpense(
+        await ApiService.addPersonalExpense(
           title: _titleController.text.trim(),
           amount: cents,
           categoryId: _selectedCategoryId,

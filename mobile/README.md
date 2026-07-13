@@ -1,92 +1,97 @@
-# Lyari — Mobile
+# Lyari Mobile
 
-Flutter companion app for **Lyari**: personal expenses, accounts, group splits, and debt simplification against the same Supabase backend as the web app.
+Flutter companion app for the self-hosted Lyari API.
 
-## Stack
-
-| Piece | Package |
-|-------|---------|
-| UI | Flutter 3.x, Material 3 |
-| State | Riverpod |
-| Routing | go_router |
-| Backend | supabase_flutter |
-| Fonts | google_fonts (Manrope + Inter) |
-
-## Prerequisites
-
-- Flutter SDK (stable), Dart 3.x
-- A Supabase project with migrations applied (see repo `supabase/migrations/` and `docs/docs/getting-started/supabase-setup.md`)
-- Same `SUPABASE_URL` and anon key as the web app
-
-## Configure Supabase
-
-The app reads credentials at **compile time** via `--dart-define` (not `.env` at runtime).
-
-1. Copy the example file:
-
-   ```bash
-   cp dart_define.example.json dart_define.json
-   ```
-
-2. Edit `dart_define.json` with your project URL and anon key (same values as `web/.env.local`).
-
-3. Run or build with:
-
-   ```bash
-   flutter run --dart-define-from-file=dart_define.json
-   ```
-
-   Or pass defines inline:
-
-   ```bash
-   flutter run \
-     --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-     --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
-   ```
-
-Keep `dart_define.json` out of version control if it contains real keys (it should be gitignored).
-
-## Run & build
+## Run (recommended — on your machine)
 
 ```bash
-cd mobile
+cp ../.env.dev ../.env   # or ../.env.prod
 flutter pub get
-flutter run --dart-define-from-file=dart_define.json
+flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP:8000
 ```
 
-Release APK:
+Use a **LAN IP**, not `localhost`, on a physical device.
+
+## Build APK with Docker
+
+Docker can **build** the Android APK but cannot replace a device/emulator for daily development.
 
 ```bash
-flutter build apk --release --dart-define-from-file=dart_define.json
+cp ../.env.prod ../.env   # set API_BASE_URL to your server
+docker compose -f ../docker-compose.prod.yml --profile mobile-build run --rm mobile-build
 ```
 
-## Features
+Output: `mobile/build/app/outputs/flutter-apk/app-release.apk`
 
-- **Auth** — Email/password and Google OAuth (configure redirect URLs in Supabase for your platform).
-- **Dashboard** — Group balances (owed / owed to you), recent personal transactions.
-- **Accounts** — List balances, add accounts (type, currency, starting balance), recent income; balances update when you add income or pay from an account.
-- **Groups** — List and open groups; equal-split group expenses; **Settle** uses the `debt-simplifier` Edge Function.
-- **Add expense** — Full-screen flow with numpad; personal vs group; category; optional **Pay from** account for personal expenses (matches web behavior).
-- **Profile** — Display name, **default currency** (saved to `profiles.default_currency`), **About** opens help/contact.
-- **Help** — Developer contact details (same idea as the web sidebar Help dialog).
+## Flutter packages
 
-## Project layout
+| Package | Version | Role |
+|---------|---------|------|
+| `flutter` | SDK | UI framework (Material 3) |
+| `cupertino_icons` | ^1.0.8 | iOS-style icons |
+| `http` | ^1.2.2 | REST calls to FastAPI |
+| `shared_preferences` | ^2.3.5 | Persist JWT locally |
+| `flutter_riverpod` | ^3.3.1 | State management |
+| `go_router` | ^17.2.0 | Navigation / auth redirects |
+| `google_fonts` | ^8.0.2 | Typography (Manrope, Inter) |
+| `intl` | ^0.20.2 | Date/number formatting |
+
+Dev: `flutter_test`, `flutter_lints`.
+
+## App structure
 
 ```
 lib/
-  main.dart              # Supabase init, MaterialApp.router
-  router.dart            # go_router + auth redirect
-  models/models.dart     # Profile, Category, Group, Expense, Account, Income, …
-  providers/             # Riverpod providers
-  services/supabase_service.dart
-  screens/               # Auth, shell, dashboard, accounts, groups, profile, add expense, help
-  theme/app_theme.dart
+├── main.dart                 # App entry, ApiService.init()
+├── router.dart               # go_router routes + auth guard
+├── currency_format.dart      # JPY-aware money formatting
+├── models/models.dart        # Data types (see below)
+├── services/
+│   └── api_service.dart      # JWT auth + all API endpoints
+├── providers/
+│   ├── auth_notifier.dart    # Login state for router
+│   └── data_providers.dart   # Riverpod FutureProviders
+├── screens/
+│   ├── auth_screen.dart      # Login / register
+│   ├── shell_screen.dart     # Bottom nav shell
+│   ├── dashboard_screen.dart # Summary cards, recent expenses
+│   ├── accounts_screen.dart  # Accounts + add account
+│   ├── groups_screen.dart    # Group list + create
+│   ├── group_detail_screen.dart  # Members, expenses, settle up
+│   ├── add_expense_screen.dart   # Personal or group expense
+│   ├── profile_screen.dart   # Settings, currency, sign out
+│   └── help_screen.dart      # About
+└── theme/app_theme.dart      # Colors, typography
 ```
 
-## Documentation
+## Models (`models/models.dart`)
 
-Full product and schema docs live in the repo **`docs/`** Docusaurus site (see **Mobile App** and **Concepts → Money flow** sections).
+| Model | Purpose |
+|-------|---------|
+| `Profile` | User name, email, avatar, default currency |
+| `Category` | Expense category (icon, color) |
+| `Group` | Shared expense group |
+| `GroupMember` | Member + role (admin/member) |
+| `Expense` | Personal or group expense |
+| `SimplifiedTransaction` | Debt simplifier result |
+| `Account` | Bank/card/wallet ledger account |
+| `Income` | Income entry |
 
-## License
+## API service methods
 
-Private / same as the parent Lyari repository.
+`ApiService` wraps the FastAPI backend:
+
+- **Auth:** `signIn`, `signUp`, `signOut`, `getProfile`, `updateProfile`
+- **Data:** `getCategories`, `getPersonalExpenses`, `addPersonalExpense`
+- **Groups:** `createGroup`, `getGroup`, `getUserGroups`, `getGroupMembers`, `getGroupExpenses`, `inviteMemberByEmail`, `addGroupExpense`
+- **Debts:** `getSimplifiedDebts`, `settleUp`
+- **Dashboard:** `getTotalOwedToMe`, `getTotalIOwe`
+- **Accounts:** `getAccounts`, `addAccount`, `deleteAccount`, `getRecentIncome`, `addIncome`
+
+## Why not run Flutter in Docker?
+
+- **Android emulator** inside Docker is slow and rarely worth it.
+- **iOS** requires macOS + Xcode — not available in Linux containers.
+- **Hot reload** works best on the host with `flutter run`.
+
+Use Docker only for reproducible **release APK builds** on a server or in CI.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'providers/auth_notifier.dart';
 import 'screens/auth_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -15,11 +15,12 @@ import 'screens/help_screen.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/dashboard',
+    refreshListenable: authNotifier,
     redirect: (context, state) {
-      final user = Supabase.instance.client.auth.currentUser;
+      final loggedIn = authNotifier.isLoggedIn;
       final isAuth = state.matchedLocation == '/auth';
-      if (user == null && !isAuth) return '/auth';
-      if (user != null && isAuth) return '/dashboard';
+      if (!loggedIn && !isAuth) return '/auth';
+      if (loggedIn && isAuth) return '/dashboard';
       return null;
     },
     routes: [

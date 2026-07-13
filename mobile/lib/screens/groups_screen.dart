@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../models/models.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class GroupsScreen extends ConsumerWidget {
@@ -254,11 +254,11 @@ class GroupsScreen extends ConsumerWidget {
                       setDialogState(() => loading = true);
                       try {
                         final profile =
-                            await SupabaseService.getProfile();
+                            await ApiService.getProfile();
                         final currency =
                             profile?.defaultCurrency ?? kDefaultCurrency;
                         final group =
-                            await SupabaseService.createGroup(
+                            await ApiService.createGroup(
                           name: name,
                           type: selectedType,
                           currency: currency,

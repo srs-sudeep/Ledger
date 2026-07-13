@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../currency_format.dart';
 import '../models/models.dart';
 import '../providers/data_providers.dart';
-import '../services/supabase_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 const _accountTypes = [
@@ -280,7 +280,7 @@ class AccountsScreen extends ConsumerWidget {
                 final parsed =
                     double.tryParse(balanceController.text.trim()) ?? 0;
                 final cents = (parsed * 100).round();
-                await SupabaseService.addAccount(
+                await ApiService.addAccount(
                   name: name,
                   type: selectedType,
                   balance: cents,
