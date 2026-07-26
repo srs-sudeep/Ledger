@@ -25,15 +25,32 @@ mkdir -p artifacts/apk mobile/build/app/outputs
 export GRADLE_OPTS="${GRADLE_OPTS:--Xmx2g -XX:MaxMetaspaceSize=512m -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2}"
 export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:--Xmx2g}"
 
-echo "==> Building APK (API_BASE_URL=${API_BASE_URL:-unset})"
+echo "==> Building APK image (API_BASE_URL=${API_BASE_URL:-unset})"
 "${COMPOSE[@]}" --profile mobile-build build mobile-build
-# Cap CPU/memory so host SSH + Actions runner keep heartbeat during Flutter build
-"${COMPOSE[@]}" --profile mobile-build run --rm \
-  --memory=6g \
-  --cpus=3 \
-  -e GRADLE_OPTS \
-  -e JAVA_TOOL_OPTIONS \
-  mobile-build
+
+echo "==> Running APK build (outputs volume mounted)"
+# Prefer docker run with resource caps; fall back to compose run
+IMAGE=$("${COMPOSE[@]}" --profile mobile-build images -q mobile-build | head -1)
+if [[ -z "$IMAGE" ]]; then
+  IMAGE=lyari-mobile-build
+fi
+
+if docker run --help 2>&1 | grep -q -- '--memory'; then
+  docker run --rm \
+    --memory=6g \
+    --cpus=3 \
+    -e API_BASE_URL="${API_BASE_URL}" \
+    -e GRADLE_OPTS \
+    -e JAVA_TOOL_OPTIONS \
+    -v "$(pwd)/mobile/build/app/outputs:/app/build/app/outputs" \
+    "$IMAGE"
+else
+  "${COMPOSE[@]}" --profile mobile-build run --rm \
+    -e API_BASE_URL="${API_BASE_URL}" \
+    -e GRADLE_OPTS \
+    -e JAVA_TOOL_OPTIONS \
+    mobile-build
+fi
 
 SRC="mobile/build/app/outputs/flutter-apk/app-release.apk"
 if [[ ! -f "$SRC" ]]; then
