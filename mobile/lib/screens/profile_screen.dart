@@ -72,7 +72,7 @@ class ProfileScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.info_outline,
             title: 'About',
-            subtitle: 'Lyari v1.0.0',
+            subtitle: 'Ledger v1.0.0',
             onTap: () => context.push('/help'),
           ),
           const SizedBox(height: 32),

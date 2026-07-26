@@ -59,6 +59,8 @@ if [[ ! -f "$SRC" ]]; then
   exit 1
 fi
 
-cp -f "$SRC" artifacts/apk/lyari.apk
+cp -f "$SRC" artifacts/apk/ledger.apk
 cp -f "$SRC" artifacts/apk/app-release.apk
-echo "Published: artifacts/apk/lyari.apk ($(du -h artifacts/apk/lyari.apk | cut -f1))"
+# Keep legacy filename as a copy for old links
+cp -f "$SRC" artifacts/apk/lyari.apk
+echo "Published: artifacts/apk/ledger.apk ($(du -h artifacts/apk/ledger.apk | cut -f1))"

@@ -1,4 +1,4 @@
-# Lyari — All-in-one ledger
+# Ledger — All-in-one expense tracker
 
 Self-hosted expense tracker + group splitting. **PostgreSQL**, **FastAPI**, **React (Bun)**, **Flutter**.
 
@@ -32,15 +32,17 @@ Current host: **hp**
 |--------|-----|
 | LAN | http://192.168.1.6 |
 | Tailscale | http://100.118.104.48 |
-| APK download | http://100.118.104.48/downloads/lyari.apk |
+| Android APK | http://100.118.104.48/downloads/ledger.apk |
 | Portainer | http://192.168.1.6:9000 (LAN/Tailscale only) |
 
-**Phone / remote:** install [Tailscale](https://tailscale.com/download), join the same tailnet, then open the Tailscale URL or install the APK. The release APK is built with `API_BASE_URL=http://100.118.104.48` (nginx on port 80).
+**Android:** install [Tailscale](https://tailscale.com/download) on the phone (for remote use), then download the APK. Built with `API_BASE_URL=http://100.118.104.48`.
+
+**iPhone:** there is **no IPA / App Store link**. iOS is not published from this home-server CI (needs macOS + Xcode / TestFlight).
 
 ```bash
 # On the server (~/Projects/lyari)
 ./scripts/deploy.sh          # api + web
-./scripts/build-apk.sh       # Flutter APK → artifacts/apk/lyari.apk
+./scripts/build-apk.sh       # Flutter APK → artifacts/apk/ledger.apk
 ```
 
 Back up the Docker volume `pgdata` (or dump with your preferred Postgres backup). Do not expose Portainer or the stack on the public internet without auth/TLS.
@@ -155,7 +157,7 @@ See `.env.dev` and `.env.prod` for full list.
 
 ## Portainer (container logs)
 
-Open **http://192.168.1.6:9000** → create admin on first visit → **Containers** → pick a Lyari container → **Logs**.
+Open **http://192.168.1.6:9000** → create admin on first visit → **Containers** → pick a Ledger container → **Logs**.
 
 ## Auth
 

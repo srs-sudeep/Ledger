@@ -16,7 +16,7 @@ from app.routers import (
     recurring,
 )
 
-app = FastAPI(title="The Ledger API", version="1.1.0")
+app = FastAPI(title="Ledger API", version="1.1.0")
 
 origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(

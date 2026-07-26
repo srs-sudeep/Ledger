@@ -48,7 +48,7 @@ export function RegisterPage() {
         <div className="flex gap-2 items-start rounded-xl bg-surface-container-low p-3 mb-6 text-xs text-secondary">
           <Info size={16} className="shrink-0 mt-0.5 text-surface-tint" />
           <p>
-            Self-hosted Lyari does <strong className="text-on-surface">not</strong> send verification
+            Self-hosted Ledger does <strong className="text-on-surface">not</strong> send verification
             emails. Your account is active immediately — we only check that the email format is valid.
           </p>
         </div>

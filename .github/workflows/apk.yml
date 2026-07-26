@@ -36,15 +36,15 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lyari-apk
-          path: /home/srs/Projects/lyari/artifacts/apk/lyari.apk
+          name: ledger-apk
+          path: /home/srs/Projects/lyari/artifacts/apk/ledger.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: /home/srs/Projects/lyari/artifacts/apk/lyari.apk
+          files: /home/srs/Projects/lyari/artifacts/apk/ledger.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

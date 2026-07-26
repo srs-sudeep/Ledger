@@ -123,8 +123,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _isLogin
-                      ? 'Sign in to your Lyari account'
-                      : 'Start tracking expenses with Lyari',
+                      ? 'Sign in to your Ledger account'
+                      : 'Start tracking expenses with Ledger',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (!_isLogin) ...[
@@ -137,7 +137,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      'No verification email is sent on self-hosted Lyari. '
+                      'No verification email is sent on self-hosted Ledger. '
                       'Your account is active immediately after sign-up.',
                       style: TextStyle(color: AppColors.secondary, fontSize: 12),
                     ),

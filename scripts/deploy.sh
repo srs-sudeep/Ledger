@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy Lyari prod stack (API + web). Intended for the home server or CI.
+# Deploy Ledger prod stack (API + web). Intended for the home server or CI.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

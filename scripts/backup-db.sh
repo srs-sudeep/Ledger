@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Backup Lyari Postgres volume data via docker compose.
+# Backup Ledger Postgres volume data via docker compose.
 # Usage: ./scripts/backup-db.sh [dev|prod]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
