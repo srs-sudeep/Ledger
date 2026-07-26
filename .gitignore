@@ -8,6 +8,13 @@ node_modules/
 artifacts/apk/*.apk
 !artifacts/apk/.gitkeep
 
+# Flutter
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+
+
 # OS files
 .DS_Store
 Thumbs.db
