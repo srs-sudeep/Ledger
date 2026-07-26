@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date as Date, datetime as DateTime
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -39,8 +39,8 @@ class UserOut(BaseModel):
     avatar_url: str | None
     default_currency: str
     email_verified: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: DateTime
+    updated_at: DateTime
 
     model_config = {"from_attributes": True}
 
@@ -82,8 +82,8 @@ class AccountOut(BaseModel):
     icon: str | None
     color: str | None
     is_default: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: DateTime
+    updated_at: DateTime
 
     model_config = {"from_attributes": True}
 
@@ -91,7 +91,7 @@ class AccountOut(BaseModel):
 class IncomeCreate(BaseModel):
     amount: int = Field(gt=0)
     source: str
-    date: date
+    date: Date
     account_id: UUID | None = None
     currency: str = "JPY"
     notes: str | None = None
@@ -100,7 +100,7 @@ class IncomeCreate(BaseModel):
 class IncomeUpdate(BaseModel):
     amount: int | None = Field(default=None, gt=0)
     source: str | None = None
-    date: date | None = None
+    date: Date | None = None
     account_id: UUID | None = None
     currency: str | None = None
     notes: str | None = None
@@ -113,9 +113,9 @@ class IncomeOut(BaseModel):
     amount: int
     currency: str
     source: str
-    date: date
+    date: Date
     notes: str | None
-    created_at: datetime
+    created_at: DateTime
 
     model_config = {"from_attributes": True}
 
@@ -125,7 +125,7 @@ class ExpenseCreate(BaseModel):
     amount: int = Field(gt=0)
     currency: str = "JPY"
     category_id: UUID | None = None
-    date: date
+    date: Date
     group_id: UUID | None = None
     account_id: UUID | None = None
     notes: str | None = None
@@ -138,7 +138,7 @@ class ExpenseUpdate(BaseModel):
     amount: int | None = Field(default=None, gt=0)
     currency: str | None = None
     category_id: UUID | None = None
-    date: date | None = None
+    date: Date | None = None
     account_id: UUID | None = None
     notes: str | None = None
     payer_id: UUID | None = None
@@ -168,12 +168,12 @@ class ExpenseOut(BaseModel):
     amount: int
     currency: str
     category_id: UUID | None
-    date: date
+    date: Date
     payer_id: UUID
     group_id: UUID | None
     account_id: UUID | None
     notes: str | None
-    created_at: datetime
+    created_at: DateTime
     category: CategoryOut | None = None
     profiles: UserOut | None = None
     splits: list[SplitOut] | None = None
@@ -199,7 +199,7 @@ class GroupOut(BaseModel):
     type: str
     currency: str
     created_by: UUID
-    created_at: datetime
+    created_at: DateTime
     member_count: int | None = None
     role: str | None = None
 
@@ -211,7 +211,7 @@ class GroupMemberOut(BaseModel):
     group_id: UUID
     user_id: UUID
     role: str
-    joined_at: datetime
+    joined_at: DateTime
     profiles: UserOut | None = None
 
     model_config = {"from_attributes": True}
@@ -237,8 +237,8 @@ class SettlementOut(BaseModel):
     currency: str
     group_id: UUID
     status: str
-    created_at: datetime
-    settled_at: datetime | None
+    created_at: DateTime
+    settled_at: DateTime | None
     from_profile: UserOut | None = None
     to_profile: UserOut | None = None
 
@@ -299,7 +299,7 @@ class BudgetOut(BaseModel):
     currency: str
     spent: int = 0
     category: CategoryOut | None = None
-    created_at: datetime
+    created_at: DateTime
 
     model_config = {"from_attributes": True}
 
@@ -311,7 +311,7 @@ class RecurringCreate(BaseModel):
     category_id: UUID | None = None
     account_id: UUID | None = None
     frequency: str = "monthly"  # monthly | weekly | yearly
-    next_due: date
+    next_due: Date
     notes: str | None = None
     auto_create: bool = False
 
@@ -323,7 +323,7 @@ class RecurringUpdate(BaseModel):
     category_id: UUID | None = None
     account_id: UUID | None = None
     frequency: str | None = None
-    next_due: date | None = None
+    next_due: Date | None = None
     notes: str | None = None
     auto_create: bool | None = None
     active: bool | None = None
@@ -338,11 +338,11 @@ class RecurringOut(BaseModel):
     category_id: UUID | None
     account_id: UUID | None
     frequency: str
-    next_due: date
+    next_due: Date
     notes: str | None
     auto_create: bool
     active: bool
-    created_at: datetime
+    created_at: DateTime
     category: CategoryOut | None = None
 
     model_config = {"from_attributes": True}
