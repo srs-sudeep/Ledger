@@ -52,7 +52,9 @@ GitHub Actions runs on a **self-hosted runner** on `hp` (`runs-on: [self-hosted,
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
 | `Deploy` | push to `main`, manual | `git reset --hard origin/main` + `./scripts/deploy.sh` |
-| `APK` | push to `main`, tags `v*`, manual | `./scripts/build-apk.sh`, upload artifact; on tags → GitHub Release |
+| `APK` | tags `v*`, manual only | `./scripts/build-apk.sh`, upload artifact; on tags → GitHub Release |
+
+APK builds are heavy (Flutter Docker). Prefer **Actions → APK → Run workflow**, or tag a release. They are intentionally not run on every `main` push.
 
 Secrets stay in the server `.env` (never committed).
 
