@@ -1,14 +1,24 @@
 from datetime import date
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Expense, ExpenseSplit, Settlement, SettlementStatus, User
+from app.models import (
+    Account,
+    Expense,
+    ExpenseSplit,
+    GroupMember,
+    Settlement,
+    SettlementStatus,
+    User,
+)
 from app.schemas import DashboardSummary, SettlementOut, UserOut
 from app.security import get_current_user
+from app.services.debt import compute_group_balances
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -32,27 +42,47 @@ def dashboard_summary(
         .scalar()
     )
 
-    owed_splits = (
-        db.query(ExpenseSplit)
-        .join(Expense, Expense.id == ExpenseSplit.expense_id)
-        .filter(Expense.payer_id == user.id, ExpenseSplit.user_id != user.id)
-        .all()
+    net_worth = (
+        db.query(func.coalesce(func.sum(Account.balance), 0))
+        .filter(Account.user_id == user.id)
+        .scalar()
     )
-    owed_to_me = sum(s.owed_amount for s in owed_splits)
 
-    i_owe_splits = (
-        db.query(ExpenseSplit)
-        .join(Expense, Expense.id == ExpenseSplit.expense_id)
-        .filter(
-            ExpenseSplit.user_id == user.id,
-            Expense.payer_id != user.id,
-        )
+    memberships = (
+        db.query(GroupMember.group_id)
+        .filter(GroupMember.user_id == user.id)
         .all()
     )
-    i_owe = sum(s.owed_amount for s in i_owe_splits)
+    owed_to_me = 0
+    i_owe = 0
+    for (gid,) in memberships:
+        expenses = db.query(Expense).filter(Expense.group_id == gid).all()
+        if not expenses:
+            continue
+        expense_ids = [e.id for e in expenses]
+        splits = (
+            db.query(ExpenseSplit)
+            .filter(ExpenseSplit.expense_id.in_(expense_ids))
+            .all()
+        )
+        settlements = (
+            db.query(Settlement)
+            .filter(
+                Settlement.group_id == gid,
+                Settlement.status == SettlementStatus.completed,
+            )
+            .all()
+        )
+        balances = compute_group_balances(expenses, splits, settlements)
+        bal = balances.get(str(user.id), 0)
+        if bal > 0:
+            owed_to_me += bal
+        elif bal < 0:
+            i_owe += abs(bal)
 
     return DashboardSummary(
-        net_worth=owed_to_me - i_owe,
+        net_worth=int(net_worth or 0),
+        group_net=owed_to_me - i_owe,
         owed_to_me=owed_to_me,
         i_owe=i_owe,
         monthly_spend=int(personal or 0),

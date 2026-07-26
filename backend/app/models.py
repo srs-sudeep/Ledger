@@ -286,3 +286,52 @@ class GroupInvitation(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class Budget(Base):
+    __tablename__ = "budgets"
+    __table_args__ = (UniqueConstraint("user_id", "category_id", "month"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE")
+    )
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    month: Mapped[str] = mapped_column(String(7), nullable=False)
+    currency: Mapped[str] = mapped_column(String, default="JPY")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class RecurringExpense(Base):
+    __tablename__ = "recurring_expenses"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str] = mapped_column(String, default="JPY")
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("categories.id", ondelete="SET NULL")
+    )
+    account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="SET NULL")
+    )
+    frequency: Mapped[str] = mapped_column(String, default="monthly")
+    next_due: Mapped[date] = mapped_column(Date, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+    auto_create: Mapped[bool] = mapped_column(Boolean, default=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

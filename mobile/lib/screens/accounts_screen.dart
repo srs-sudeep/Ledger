@@ -151,7 +151,9 @@ class AccountsScreen extends ConsumerWidget {
                       ),
                     )
                   : Column(
-                      children: accs.map((a) => _AccountCard(account: a)).toList(),
+                      children: accs
+                          .map((a) => _AccountCard(account: a, ref: ref))
+                          .toList(),
                     ),
               loading: () => const Center(
                 child: Padding(
@@ -166,12 +168,22 @@ class AccountsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Recent Income
-            Text(
-              'Recent Income',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontSize: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Recent Income',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontSize: 18),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _showAddIncomeDialog(context, ref),
+                  child: const Text('Add'),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
 
@@ -187,7 +199,8 @@ class AccountsScreen extends ConsumerWidget {
                       ),
                     )
                   : Column(
-                      children: items.map((i) => _IncomeTile(income: i)).toList(),
+                      children:
+                          items.map((i) => _IncomeTile(income: i, ref: ref)).toList(),
                     ),
               loading: () => const Center(
                 child: Padding(
@@ -296,11 +309,61 @@ class AccountsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  void _showAddIncomeDialog(BuildContext context, WidgetRef ref) {
+    final sourceController = TextEditingController();
+    final amountController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Income'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: sourceController,
+              decoration: const InputDecoration(hintText: 'Source'),
+              autofocus: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: amountController,
+              decoration: const InputDecoration(hintText: 'Amount'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final source = sourceController.text.trim();
+              final parsed = double.tryParse(amountController.text.trim()) ?? 0;
+              if (source.isEmpty || parsed <= 0) return;
+              await ApiService.addIncome(
+                amount: (parsed * 100).round(),
+                source: source,
+                date: DateTime.now().toIso8601String().split('T').first,
+              );
+              ref.invalidate(recentIncomeProvider);
+              ref.invalidate(accountsProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _AccountCard extends StatelessWidget {
   final Account account;
-  const _AccountCard({required this.account});
+  final WidgetRef ref;
+  const _AccountCard({required this.account, required this.ref});
 
   Color get _indicatorColor {
     if (account.color != null) {
@@ -404,6 +467,14 @@ class _AccountCard extends StatelessWidget {
               ),
             ],
           ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20),
+            color: AppColors.error,
+            onPressed: () async {
+              await ApiService.deleteAccount(account.id);
+              ref.invalidate(accountsProvider);
+            },
+          ),
         ],
       ),
     );
@@ -412,7 +483,8 @@ class _AccountCard extends StatelessWidget {
 
 class _IncomeTile extends StatelessWidget {
   final Income income;
-  const _IncomeTile({required this.income});
+  final WidgetRef ref;
+  const _IncomeTile({required this.income, required this.ref});
 
   @override
   Widget build(BuildContext context) {
@@ -465,6 +537,15 @@ class _IncomeTile extends StatelessWidget {
               fontSize: 14,
               color: Color(0xFF2E7D32),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20),
+            color: AppColors.error,
+            onPressed: () async {
+              await ApiService.deleteIncome(income.id);
+              ref.invalidate(recentIncomeProvider);
+              ref.invalidate(accountsProvider);
+            },
           ),
         ],
       ),

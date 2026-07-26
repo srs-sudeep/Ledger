@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, lyari]
+    defaults:
+      run:
+        working-directory: /home/srs/Projects/lyari
+    steps:
+      - name: Pull latest
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Deploy api + web
+        run: |
+          chmod +x scripts/deploy.sh
+          ./scripts/deploy.sh

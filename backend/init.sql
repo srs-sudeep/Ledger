@@ -130,6 +130,33 @@ CREATE INDEX idx_group_members_user_id ON group_members(user_id);
 CREATE INDEX idx_accounts_user_id ON accounts(user_id);
 CREATE INDEX idx_users_email ON users(email);
 
+CREATE TABLE budgets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL CHECK (amount > 0),
+  month TEXT NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'JPY',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, category_id, month)
+);
+
+CREATE TABLE recurring_expenses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  amount INTEGER NOT NULL CHECK (amount > 0),
+  currency TEXT NOT NULL DEFAULT 'JPY',
+  category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  frequency TEXT NOT NULL DEFAULT 'monthly',
+  next_due DATE NOT NULL,
+  notes TEXT,
+  auto_create BOOLEAN NOT NULL DEFAULT false,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 INSERT INTO categories (name, icon, color) VALUES
   ('Groceries',      'shopping_basket',   '#4CAF50'),
   ('Dining',         'restaurant',        '#FF9800'),

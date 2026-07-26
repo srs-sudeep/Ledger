@@ -10,6 +10,7 @@ import { GroupsPage } from "@/pages/GroupsPage";
 import { GroupDetailPage } from "@/pages/GroupDetailPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { BudgetsPage } from "@/pages/BudgetsPage";
 import { Spinner } from "@/components/ui/spinner";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

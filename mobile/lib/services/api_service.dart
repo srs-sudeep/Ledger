@@ -195,6 +195,27 @@ class ApiService {
     });
   }
 
+  static Future<void> deleteExpense(String id) async {
+    await _request('DELETE', '/api/expenses/$id');
+  }
+
+  static Future<void> updateExpense(
+    String id, {
+    String? title,
+    int? amount,
+    String? categoryId,
+    String? notes,
+    String? accountId,
+  }) async {
+    final body = <String, dynamic>{};
+    if (title != null) body['title'] = title;
+    if (amount != null) body['amount'] = amount;
+    if (categoryId != null) body['category_id'] = categoryId;
+    if (notes != null) body['notes'] = notes;
+    if (accountId != null) body['account_id'] = accountId;
+    await _request('PATCH', '/api/expenses/$id', body: body);
+  }
+
   // Groups
   static Future<Group> createGroup({
     required String name,
@@ -360,6 +381,10 @@ class ApiService {
   static Future<List<Income>> getRecentIncome({int limit = 10}) async {
     final data = await _request('GET', '/api/income?limit=$limit') as List;
     return data.map((e) => Income.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  static Future<void> deleteIncome(String id) async {
+    await _request('DELETE', '/api/income/$id');
   }
 
   static Future<void> addIncome({

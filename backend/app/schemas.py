@@ -58,6 +58,16 @@ class AccountCreate(BaseModel):
     balance: int = 0
     currency: str = "JPY"
     color: str | None = None
+    is_default: bool = False
+
+
+class AccountUpdate(BaseModel):
+    name: str | None = None
+    type: str | None = None
+    balance: int | None = None
+    currency: str | None = None
+    color: str | None = None
+    is_default: bool | None = None
 
 
 class AccountOut(BaseModel):
@@ -82,6 +92,15 @@ class IncomeCreate(BaseModel):
     date: date
     account_id: UUID | None = None
     currency: str = "JPY"
+    notes: str | None = None
+
+
+class IncomeUpdate(BaseModel):
+    amount: int | None = Field(default=None, gt=0)
+    source: str | None = None
+    date: date | None = None
+    account_id: UUID | None = None
+    currency: str | None = None
     notes: str | None = None
 
 
@@ -112,10 +131,33 @@ class ExpenseCreate(BaseModel):
     splits: list["SplitCreate"] | None = None
 
 
+class ExpenseUpdate(BaseModel):
+    title: str | None = None
+    amount: int | None = Field(default=None, gt=0)
+    currency: str | None = None
+    category_id: UUID | None = None
+    date: date | None = None
+    account_id: UUID | None = None
+    notes: str | None = None
+    payer_id: UUID | None = None
+    splits: list["SplitCreate"] | None = None
+
+
 class SplitCreate(BaseModel):
     user_id: UUID
     owed_amount: int = Field(ge=0)
     split_type: str = "equal"
+
+
+class SplitOut(BaseModel):
+    id: UUID
+    expense_id: UUID
+    user_id: UUID
+    owed_amount: int
+    split_type: str
+    profiles: UserOut | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class ExpenseOut(BaseModel):
@@ -132,6 +174,7 @@ class ExpenseOut(BaseModel):
     created_at: datetime
     category: CategoryOut | None = None
     profiles: UserOut | None = None
+    splits: list[SplitOut] | None = None
 
     model_config = {"from_attributes": True}
 
@@ -140,6 +183,12 @@ class GroupCreate(BaseModel):
     name: str
     type: str = "custom"
     currency: str = "JPY"
+
+
+class GroupUpdate(BaseModel):
+    name: str | None = None
+    type: str | None = None
+    currency: str | None = None
 
 
 class GroupOut(BaseModel):
@@ -174,7 +223,7 @@ class SettlementCreate(BaseModel):
     from_user_id: UUID
     to_user_id: UUID
     amount: int = Field(gt=0)
-    group_id: UUID
+    group_id: UUID | None = None
     status: str = "completed"
 
 
@@ -201,9 +250,101 @@ class DebtSimplifyOut(BaseModel):
 
 class DashboardSummary(BaseModel):
     net_worth: int
+    group_net: int
     owed_to_me: int
     i_owe: int
     monthly_spend: int
 
 
+class AnalyticsByCategory(BaseModel):
+    category_id: UUID | None
+    category_name: str
+    color: str | None
+    total: int
+
+
+class AnalyticsByMonth(BaseModel):
+    month: str
+    personal: int
+    group: int
+
+
+class AnalyticsOut(BaseModel):
+    personal_total: int
+    group_total: int
+    by_category: list[AnalyticsByCategory]
+    by_month: list[AnalyticsByMonth]
+
+
+class BudgetCreate(BaseModel):
+    category_id: UUID
+    amount: int = Field(gt=0)
+    month: str  # YYYY-MM
+    currency: str = "JPY"
+
+
+class BudgetUpdate(BaseModel):
+    amount: int | None = Field(default=None, gt=0)
+    currency: str | None = None
+
+
+class BudgetOut(BaseModel):
+    id: UUID
+    user_id: UUID
+    category_id: UUID
+    amount: int
+    month: str
+    currency: str
+    spent: int = 0
+    category: CategoryOut | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class RecurringCreate(BaseModel):
+    title: str
+    amount: int = Field(gt=0)
+    currency: str = "JPY"
+    category_id: UUID | None = None
+    account_id: UUID | None = None
+    frequency: str = "monthly"  # monthly | weekly | yearly
+    next_due: date
+    notes: str | None = None
+    auto_create: bool = False
+
+
+class RecurringUpdate(BaseModel):
+    title: str | None = None
+    amount: int | None = Field(default=None, gt=0)
+    currency: str | None = None
+    category_id: UUID | None = None
+    account_id: UUID | None = None
+    frequency: str | None = None
+    next_due: date | None = None
+    notes: str | None = None
+    auto_create: bool | None = None
+    active: bool | None = None
+
+
+class RecurringOut(BaseModel):
+    id: UUID
+    user_id: UUID
+    title: str
+    amount: int
+    currency: str
+    category_id: UUID | None
+    account_id: UUID | None
+    frequency: str
+    next_due: date
+    notes: str | None
+    auto_create: bool
+    active: bool
+    created_at: datetime
+    category: CategoryOut | None = None
+
+    model_config = {"from_attributes": True}
+
+
 ExpenseCreate.model_rebuild()
+ExpenseUpdate.model_rebuild()

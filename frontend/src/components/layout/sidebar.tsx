@@ -10,6 +10,7 @@ import {
   Plus,
   Loader2,
   Settings,
+  PiggyBank,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/accounts", label: "Accounts", icon: Wallet },
   { href: "/personal", label: "Transactions", icon: Receipt },
   { href: "/groups", label: "Groups", icon: Users },
+  { href: "/budgets", label: "Budgets", icon: PiggyBank },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

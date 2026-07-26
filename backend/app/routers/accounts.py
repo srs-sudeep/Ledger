@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Account, AccountType, User
-from app.schemas import AccountCreate, AccountOut
+from app.schemas import AccountCreate, AccountOut, AccountUpdate
 from app.security import get_current_user
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
@@ -31,6 +31,10 @@ def create_account(
     user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
+    if body.is_default:
+        db.query(Account).filter(Account.user_id == user.id).update(
+            {"is_default": False}
+        )
     acc = Account(
         user_id=user.id,
         name=body.name,
@@ -38,8 +42,33 @@ def create_account(
         balance=body.balance,
         currency=body.currency,
         color=body.color,
+        is_default=body.is_default,
     )
     db.add(acc)
+    db.commit()
+    db.refresh(acc)
+    return acc
+
+
+@router.patch("/{account_id}", response_model=AccountOut)
+def update_account(
+    account_id: UUID,
+    body: AccountUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    acc = db.get(Account, account_id)
+    if not acc or acc.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+    data = body.model_dump(exclude_unset=True)
+    if data.get("is_default"):
+        db.query(Account).filter(Account.user_id == user.id).update(
+            {"is_default": False}
+        )
+    if "type" in data and data["type"] is not None:
+        data["type"] = AccountType(data["type"])
+    for k, v in data.items():
+        setattr(acc, k, v)
     db.commit()
     db.refresh(acc)
     return acc

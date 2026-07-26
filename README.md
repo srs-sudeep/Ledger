@@ -13,13 +13,48 @@ Self-hosted expense tracker + group splitting. **PostgreSQL**, **FastAPI**, **Re
 docker compose -f docker-compose.dev.yml up --build
 
 # Prod — nginx + optimized images
-docker compose -f docker-compose.prod.yml up -d --build
+./scripts/deploy.sh
+# or: docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 | Mode | Web | API | API docs |
 |------|-----|-----|----------|
 | Dev | http://localhost:5173 | http://localhost:8000 | http://localhost:8000/docs |
-| Prod | http://YOUR_SERVER_IP | http://YOUR_SERVER_IP:8000 | http://YOUR_SERVER_IP:8000/docs |
+| Prod | http://SERVER (port 80) | http://SERVER/api | http://SERVER/api/health |
+
+In production the API is **not** published on host `:8000` — nginx proxies `/api` only.
+
+## Home server (LAN + Tailscale)
+
+Current host: **hp**
+
+| Access | URL |
+|--------|-----|
+| LAN | http://192.168.1.6 |
+| Tailscale | http://100.118.104.48 |
+| APK download | http://100.118.104.48/downloads/lyari.apk |
+| Portainer | http://192.168.1.6:9000 (LAN/Tailscale only) |
+
+**Phone / remote:** install [Tailscale](https://tailscale.com/download), join the same tailnet, then open the Tailscale URL or install the APK. The release APK is built with `API_BASE_URL=http://100.118.104.48` (nginx on port 80).
+
+```bash
+# On the server (~/Projects/lyari)
+./scripts/deploy.sh          # api + web
+./scripts/build-apk.sh       # Flutter APK → artifacts/apk/lyari.apk
+```
+
+Back up the Docker volume `pgdata` (or dump with your preferred Postgres backup). Do not expose Portainer or the stack on the public internet without auth/TLS.
+
+## CI/CD
+
+GitHub Actions runs on a **self-hosted runner** on `hp` (`runs-on: [self-hosted, linux, lyari]`).
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| `Deploy` | push to `main`, manual | `git reset --hard origin/main` + `./scripts/deploy.sh` |
+| `APK` | push to `main`, tags `v*`, manual | `./scripts/build-apk.sh`, upload artifact; on tags → GitHub Release |
+
+Secrets stay in the server `.env` (never committed).
 
 ## Environment files
 
@@ -41,7 +76,7 @@ All services (Postgres, API, web, mobile build) read from the single root `.env`
 | File | Use case |
 |------|----------|
 | `docker-compose.dev.yml` | Hot reload, source mounts, Postgres exposed |
-| `docker-compose.prod.yml` | Production images, nginx, persistent volume |
+| `docker-compose.prod.yml` | Production images, nginx, persistent volume, APK downloads mount |
 
 ## Local development (without full Docker)
 
@@ -68,7 +103,7 @@ bun run dev    # http://localhost:5173
 ```bash
 cd mobile
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP:8000
+flutter run --dart-define=API_BASE_URL=http://100.118.104.48
 ```
 
 ## Can Docker run Flutter?
@@ -77,7 +112,7 @@ flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP:8000
 
 | Task | Docker? | Notes |
 |------|---------|-------|
-| Build Android APK | Yes | `docker compose -f docker-compose.prod.yml --profile mobile-build run --rm mobile-build` |
+| Build Android APK | Yes | `./scripts/build-apk.sh` |
 | Run on phone/emulator | No (use host) | Install Flutter locally; point at API with `API_BASE_URL` |
 | iOS build/simulator | No | Requires macOS + Xcode |
 
@@ -88,17 +123,16 @@ Flutter in Docker is for **CI/APK builds** only. For development, run `flutter r
 ```
 lyari/
 ├── backend/                 # FastAPI
-│   ├── Dockerfile           # prod
-│   └── Dockerfile.dev       # dev (uvicorn --reload)
-├── frontend/                # Vite + React (Bun)
-│   ├── Dockerfile           # prod (bun build + nginx)
-│   └── Dockerfile.dev       # dev (bun run dev)
-├── mobile/                  # Flutter app
-│   └── Dockerfile           # APK build only
+├── frontend/                # Vite + React (Bun) + nginx
+├── mobile/                  # Flutter (APK via Docker)
+├── artifacts/apk/           # Published APK for /downloads/
+├── scripts/
+│   ├── env-use.sh
+│   ├── deploy.sh
+│   └── build-apk.sh
+├── .github/workflows/       # Deploy + APK (self-hosted)
 ├── docker-compose.dev.yml
-├── docker-compose.prod.yml
-├── .env.dev / .env.prod
-└── scripts/env-use.sh
+└── docker-compose.prod.yml
 ```
 
 ## Environment variables
@@ -110,16 +144,16 @@ lyari/
 | `JWT_SECRET` | api | Auth token signing (change in prod) |
 | `CORS_ORIGINS` | api | Comma-separated allowed web origins |
 | `VITE_API_URL` | web build | Empty when nginx/docker proxy handles `/api` |
-| `API_BASE_URL` | mobile | FastAPI URL for `--dart-define` |
+| `API_BASE_URL` | mobile | Base URL baked into APK (`--dart-define`), e.g. Tailscale IP |
 | `GOOGLE_CLIENT_ID` | api, web, mobile | Optional Google OAuth client ID |
 | `PORTAINER_PORT` | portainer | Container UI (default 9000) |
-| `API_PORT` / `WEB_PORT` | compose | Host port mappings |
+| `WEB_PORT` | compose | Host port for nginx (default 80) |
 
 See `.env.dev` and `.env.prod` for full list.
 
 ## Portainer (container logs)
 
-Open **http://localhost:9000** → create admin on first visit → **Containers** → pick `lyari-dev-api-1` (or web/db) → **Logs**.
+Open **http://192.168.1.6:9000** → create admin on first visit → **Containers** → pick a Lyari container → **Logs**.
 
 ## Auth
 
@@ -132,4 +166,4 @@ Open **http://localhost:9000** → create admin on first visit → **Containers*
 
 - Edit `.env` after `env-use prod`: strong `POSTGRES_PASSWORD`, `JWT_SECRET`, `CORS_ORIGINS`, `API_BASE_URL`.
 - Back up the `pgdata` Docker volume.
-- Web on port **80** proxies `/api` to FastAPI internally.
+- Web on port **80** proxies `/api` to FastAPI internally; APKs at `/downloads/`.

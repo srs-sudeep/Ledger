@@ -4,6 +4,10 @@ node_modules/
 # Environment (active copy — use .env.dev or .env.prod as source)
 .env
 
+# Published APKs on the home server (built by CI / scripts/build-apk.sh)
+artifacts/apk/*.apk
+!artifacts/apk/.gitkeep
+
 # OS files
 .DS_Store
 Thumbs.db

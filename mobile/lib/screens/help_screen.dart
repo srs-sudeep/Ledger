@@ -111,7 +111,8 @@ class HelpScreen extends StatelessWidget {
               runSpacing: 8,
               children: const [
                 _TechChip(label: 'Flutter'),
-                _TechChip(label: 'Supabase'),
+                _TechChip(label: 'FastAPI'),
+                _TechChip(label: 'PostgreSQL'),
                 _TechChip(label: 'Riverpod'),
                 _TechChip(label: 'GoRouter'),
               ],

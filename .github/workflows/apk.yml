@@ -1,0 +1,49 @@
+name: APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+concurrency:
+  group: apk-build
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: [self-hosted, linux, lyari]
+    defaults:
+      run:
+        working-directory: /home/srs/Projects/lyari
+    steps:
+      - name: Pull latest
+        run: |
+          git fetch origin --tags
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            git checkout --force "tags/${GITHUB_REF_NAME}"
+          else
+            git fetch origin main
+            git reset --hard origin/main
+          fi
+
+      - name: Build and publish APK
+        run: |
+          chmod +x scripts/build-apk.sh
+          ./scripts/build-apk.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lyari-apk
+          path: /home/srs/Projects/lyari/artifacts/apk/lyari.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /home/srs/Projects/lyari/artifacts/apk/lyari.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

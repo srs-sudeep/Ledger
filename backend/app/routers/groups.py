@@ -22,6 +22,7 @@ from app.schemas import (
     GroupCreate,
     GroupMemberOut,
     GroupOut,
+    GroupUpdate,
     InviteMember,
     SettlementCreate,
     SettlementOut,
@@ -122,6 +123,44 @@ def get_group(
     group = db.get(Group, group_id)
     if not group:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Group not found")
+    count = (
+        db.query(func.count(GroupMember.id))
+        .filter(GroupMember.group_id == group_id)
+        .scalar()
+    )
+    return GroupOut(
+        id=group.id,
+        name=group.name,
+        type=group.type.value,
+        currency=group.currency,
+        created_by=group.created_by,
+        created_at=group.created_at,
+        member_count=count or 0,
+        role=mem.role.value,
+    )
+
+
+@router.patch("/{group_id}", response_model=GroupOut)
+def update_group(
+    group_id: UUID,
+    body: GroupUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    from app.models import GroupType
+
+    require_group_admin(db, group_id, user)
+    group = db.get(Group, group_id)
+    if not group:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Group not found")
+    data = body.model_dump(exclude_unset=True)
+    if "type" in data and data["type"] is not None:
+        data["type"] = GroupType(data["type"])
+    for k, v in data.items():
+        setattr(group, k, v)
+    db.commit()
+    db.refresh(group)
+    mem = require_group_member(db, group_id, user)
     count = (
         db.query(func.count(GroupMember.id))
         .filter(GroupMember.group_id == group_id)
@@ -242,6 +281,42 @@ def simplify_group_debts(
     )
 
 
+@router.get("/{group_id}/settlements", response_model=list[SettlementOut])
+def list_settlements(
+    group_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    require_group_member(db, group_id, user)
+    rows = (
+        db.query(Settlement)
+        .filter(Settlement.group_id == group_id)
+        .order_by(Settlement.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    out = []
+    for row in rows:
+        from_u = db.get(User, row.from_user_id)
+        to_u = db.get(User, row.to_user_id)
+        out.append(
+            SettlementOut(
+                id=row.id,
+                from_user_id=row.from_user_id,
+                to_user_id=row.to_user_id,
+                amount=row.amount,
+                currency=row.currency,
+                group_id=row.group_id,
+                status=row.status.value,
+                created_at=row.created_at,
+                settled_at=row.settled_at,
+                from_profile=UserOut.model_validate(from_u) if from_u else None,
+                to_profile=UserOut.model_validate(to_u) if to_u else None,
+            )
+        )
+    return out
+
+
 @router.post("/{group_id}/settlements", response_model=SettlementOut)
 def create_settlement(
     group_id: UUID,
@@ -263,6 +338,40 @@ def create_settlement(
         settled_at=datetime.now(timezone.utc) if body.status == "completed" else None,
     )
     db.add(row)
+    db.commit()
+    db.refresh(row)
+    from_u = db.get(User, row.from_user_id)
+    to_u = db.get(User, row.to_user_id)
+    return SettlementOut(
+        id=row.id,
+        from_user_id=row.from_user_id,
+        to_user_id=row.to_user_id,
+        amount=row.amount,
+        currency=row.currency,
+        group_id=row.group_id,
+        status=row.status.value,
+        created_at=row.created_at,
+        settled_at=row.settled_at,
+        from_profile=UserOut.model_validate(from_u) if from_u else None,
+        to_profile=UserOut.model_validate(to_u) if to_u else None,
+    )
+
+
+@router.patch("/{group_id}/settlements/{settlement_id}", response_model=SettlementOut)
+def complete_settlement(
+    group_id: UUID,
+    settlement_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    require_group_member(db, group_id, user)
+    row = db.get(Settlement, settlement_id)
+    if not row or row.group_id != group_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Settlement not found")
+    if user.id not in (row.from_user_id, row.to_user_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not a party to this settlement")
+    row.status = SettlementStatus.completed
+    row.settled_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(row)
     from_u = db.get(User, row.from_user_id)
