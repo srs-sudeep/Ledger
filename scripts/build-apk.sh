@@ -29,10 +29,9 @@ echo "==> Building APK image (API_BASE_URL=${API_BASE_URL:-unset})"
 "${COMPOSE[@]}" --profile mobile-build build mobile-build
 
 echo "==> Running APK build (outputs volume mounted)"
-# Prefer docker run with resource caps; fall back to compose run
 IMAGE=$("${COMPOSE[@]}" --profile mobile-build images -q mobile-build | head -1)
 if [[ -z "$IMAGE" ]]; then
-  IMAGE=lyari-mobile-build
+  IMAGE=ledger-mobile-build
 fi
 
 if docker run --help 2>&1 | grep -q -- '--memory'; then
@@ -61,6 +60,4 @@ fi
 
 cp -f "$SRC" artifacts/apk/ledger.apk
 cp -f "$SRC" artifacts/apk/app-release.apk
-# Keep legacy filename as a copy for old links
-cp -f "$SRC" artifacts/apk/lyari.apk
 echo "Published: artifacts/apk/ledger.apk ($(du -h artifacts/apk/ledger.apk | cut -f1))"

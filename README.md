@@ -40,16 +40,16 @@ Current host: **hp**
 **iPhone:** there is **no IPA / App Store link**. iOS is not published from this home-server CI (needs macOS + Xcode / TestFlight).
 
 ```bash
-# On the server (~/Projects/lyari)
+# On the server (~/Projects/ledger)
 ./scripts/deploy.sh          # api + web
 ./scripts/build-apk.sh       # Flutter APK → artifacts/apk/ledger.apk
 ```
 
-Back up the Docker volume `pgdata` (or dump with your preferred Postgres backup). Do not expose Portainer or the stack on the public internet without auth/TLS.
+Back up the Docker volume `ledger_pgdata` (or dump with your preferred Postgres backup). Do not expose Portainer or the stack on the public internet without auth/TLS.
 
 ## CI/CD
 
-GitHub Actions runs on a **self-hosted runner** on `hp` (`runs-on: [self-hosted, linux, lyari]`).
+GitHub Actions runs on a **self-hosted runner** on `hp` (`runs-on: [self-hosted, linux, ledger]`).
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
@@ -125,7 +125,7 @@ Flutter in Docker is for **CI/APK builds** only. For development, run `flutter r
 ## Project structure
 
 ```
-lyari/
+ledger/
 ├── backend/                 # FastAPI
 ├── frontend/                # Vite + React (Bun) + nginx
 ├── mobile/                  # Flutter (APK via Docker)

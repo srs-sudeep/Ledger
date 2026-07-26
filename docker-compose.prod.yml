@@ -75,4 +75,6 @@ services:
 
 volumes:
   pgdata:
+    name: ledger_pgdata
   portainer_data:
+    name: ledger_portainer_data

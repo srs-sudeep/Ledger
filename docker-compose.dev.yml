@@ -72,5 +72,8 @@ services:
 
 volumes:
   pgdata_dev:
+    name: ledger_pgdata_dev
   web_node_modules:
+    name: ledger_web_node_modules
   portainer_data:
+    name: ledger_portainer_data_dev

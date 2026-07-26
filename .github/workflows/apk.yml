@@ -12,11 +12,11 @@ concurrency:
 
 jobs:
   apk:
-    runs-on: [self-hosted, linux, lyari]
+    runs-on: [self-hosted, linux, ledger]
     timeout-minutes: 90
     defaults:
       run:
-        working-directory: /home/srs/Projects/lyari
+        working-directory: /home/srs/Projects/ledger
     steps:
       - name: Pull latest
         run: |
@@ -37,14 +37,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ledger-apk
-          path: /home/srs/Projects/lyari/artifacts/apk/ledger.apk
+          path: /home/srs/Projects/ledger/artifacts/apk/ledger.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: /home/srs/Projects/lyari/artifacts/apk/ledger.apk
+          files: /home/srs/Projects/ledger/artifacts/apk/ledger.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

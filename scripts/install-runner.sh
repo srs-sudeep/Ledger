@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# One-time install of the GitHub Actions self-hosted runner on hp.
+# One-time install of the GitHub Actions self-hosted runner for Ledger.
 # Run on the server as user srs (with docker group). Requires RUNNER_TOKEN.
 set -euo pipefail
 
 RUNNER_DIR="${RUNNER_DIR:-$HOME/actions-runner}"
-REPO="${REPO:-srs-sudeep/Lyari}"
-LABELS="${LABELS:-self-hosted,linux,lyari}"
+REPO="${REPO:-srs-sudeep/Ledger}"
+LABELS="${LABELS:-self-hosted,linux,ledger}"
 
 if [[ -z "${RUNNER_TOKEN:-}" ]]; then
   echo "Set RUNNER_TOKEN to a registration token from:" >&2
@@ -28,12 +28,11 @@ if [[ ! -f .runner ]]; then
     --url "https://github.com/${REPO}" \
     --token "$RUNNER_TOKEN" \
     --labels "$LABELS" \
-    --name "${RUNNER_NAME:-hp-lyari}" \
+    --name "${RUNNER_NAME:-hp-ledger}" \
     --work _work \
     --replace
 fi
 
-# Install and start systemd user service when possible; else use svc.sh
 if [[ -x ./svc.sh ]]; then
   sudo ./svc.sh install srs || true
   sudo ./svc.sh start || ./run.sh &

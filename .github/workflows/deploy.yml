@@ -11,10 +11,10 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, linux, lyari]
+    runs-on: [self-hosted, linux, ledger]
     defaults:
       run:
-        working-directory: /home/srs/Projects/lyari
+        working-directory: /home/srs/Projects/ledger
     steps:
       - name: Pull latest
         run: |
