@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Build release APK and publish to artifacts/apk for nginx /downloads/
+# Uses capped Docker resources so the self-hosted runner stays responsive.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -21,9 +22,18 @@ done < .env
 
 mkdir -p artifacts/apk mobile/build/app/outputs
 
+export GRADLE_OPTS="${GRADLE_OPTS:--Xmx2g -XX:MaxMetaspaceSize=512m -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2}"
+export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:--Xmx2g}"
+
 echo "==> Building APK (API_BASE_URL=${API_BASE_URL:-unset})"
 "${COMPOSE[@]}" --profile mobile-build build mobile-build
-"${COMPOSE[@]}" --profile mobile-build run --rm mobile-build
+# Cap CPU/memory so host SSH + Actions runner keep heartbeat during Flutter build
+"${COMPOSE[@]}" --profile mobile-build run --rm \
+  --memory=6g \
+  --cpus=3 \
+  -e GRADLE_OPTS \
+  -e JAVA_TOOL_OPTIONS \
+  mobile-build
 
 SRC="mobile/build/app/outputs/flutter-apk/app-release.apk"
 if [[ ! -f "$SRC" ]]; then

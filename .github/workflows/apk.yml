@@ -1,18 +1,19 @@
 name: APK
 
+# Heavy Flutter build — do not run on every main push (Deploy handles that).
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     tags: ["v*"]
 
 concurrency:
   group: apk-build
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   apk:
     runs-on: [self-hosted, linux, lyari]
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: /home/srs/Projects/lyari
