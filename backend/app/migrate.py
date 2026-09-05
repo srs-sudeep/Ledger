@@ -29,11 +29,28 @@ def apply_migrations() -> None:
             row[0]
             for row in conn.execute(text("SELECT id FROM schema_migrations")).fetchall()
         }
+        tables = {
+            row[0]
+            for row in conn.execute(
+                text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+            ).fetchall()
+        }
 
     files = sorted(MIGRATIONS_DIR.glob("*.sql"))
     for path in files:
         mid = path.name
         if mid in applied:
+            continue
+        # When we consolidate older numbered migrations into a single baseline
+        # file, existing databases already have the schema and only need the
+        # baseline marked as applied.
+        if mid == "001_v01.sql" and applied and "users" in tables:
+            log.info("Marking baseline migration %s as applied for existing database", mid)
+            with engine.begin() as conn:
+                conn.execute(
+                    text("INSERT INTO schema_migrations (id) VALUES (:id) ON CONFLICT (id) DO NOTHING"),
+                    {"id": mid},
+                )
             continue
         sql = path.read_text()
         log.info("Applying migration %s", mid)
@@ -50,6 +67,6 @@ def apply_migrations() -> None:
             raw.close()
         with engine.begin() as conn:
             conn.execute(
-                text("INSERT INTO schema_migrations (id) VALUES (:id)"),
+                text("INSERT INTO schema_migrations (id) VALUES (:id) ON CONFLICT (id) DO NOTHING"),
                 {"id": mid},
             )
