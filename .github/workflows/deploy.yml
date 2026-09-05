@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-prod
   cancel-in-progress: true
@@ -18,8 +21,8 @@ jobs:
     steps:
       - name: Pull latest
         run: |
-          git fetch origin main
-          git reset --hard origin/main
+          git fetch --prune origin
+          git reset --hard "${GITHUB_SHA}"
 
       - name: Deploy api + web
         run: |

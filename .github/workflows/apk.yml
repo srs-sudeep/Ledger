@@ -6,6 +6,9 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 concurrency:
   group: apk-build
   cancel-in-progress: false
@@ -20,13 +23,8 @@ jobs:
     steps:
       - name: Pull latest
         run: |
-          git fetch origin --tags
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            git checkout --force "tags/${GITHUB_REF_NAME}"
-          else
-            git fetch origin main
-            git reset --hard origin/main
-          fi
+          git fetch --prune --tags origin
+          git checkout --force "${GITHUB_SHA}"
 
       - name: Build and publish APK
         run: |
