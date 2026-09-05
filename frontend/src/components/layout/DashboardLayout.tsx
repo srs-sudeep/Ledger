@@ -6,7 +6,7 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-surface">
       <Sidebar />
-      <main className="md:ml-60 min-h-screen">
+      <main className="min-h-screen md:ml-72">
         <Header />
         <div className="p-4 md:p-8 max-w-[1520px] mx-auto">
           <Outlet />
