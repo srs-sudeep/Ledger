@@ -5,6 +5,7 @@ import '../currency_format.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/page_intro.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -59,6 +60,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
             const SizedBox(height: 16),
+            groupAsync.when(
+              data: (group) => PageIntro(
+                eyebrow: group.type,
+                title: group.name,
+                subtitle: 'Review members, shared expenses, balances, and settlements for this group.',
+                icon: Icons.group_work_rounded,
+              ),
+              loading: () => const PageIntro(
+                eyebrow: 'Group',
+                title: 'Group',
+                subtitle: 'Loading group details and shared activity.',
+                icon: Icons.group_work_rounded,
+              ),
+              error: (_, _) => const PageIntro(
+                eyebrow: 'Group',
+                title: 'Group',
+                subtitle: 'Shared balances, members, and expenses for this workspace.',
+                icon: Icons.group_work_rounded,
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Members (vertical list: name + email so everyone is visible)
             members.when(

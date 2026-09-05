@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brand_logo.dart';
+import '../widgets/page_intro.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -9,12 +10,18 @@ class HelpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(title: const Text('About')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
             const SizedBox(height: 24),
+            const PageIntro(
+              eyebrow: 'About',
+              title: 'Help & info',
+              subtitle: 'Reference details for the app, developer contact points, and the stack behind Ledger.',
+              icon: Icons.info_outline_rounded,
+            ),
+            const SizedBox(height: 28),
 
             // App info
             Center(
@@ -28,7 +35,7 @@ class HelpScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'v1.0.0',
+                    'v0.1.0',
                     style: TextStyle(
                       color: AppColors.secondary,
                       fontSize: 14,

@@ -7,6 +7,7 @@ import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ledger_table.dart';
+import '../widgets/page_intro.dart';
 
 class IncomeListScreen extends ConsumerStatefulWidget {
   const IncomeListScreen({super.key});
@@ -33,15 +34,6 @@ class _IncomeListScreenState extends ConsumerState<IncomeListScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text('Income'),
-        actions: [
-          IconButton(
-            onPressed: () => _showAddIncomeSheet(context, ref),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(incomeProvider(_query));
@@ -51,6 +43,17 @@ class _IncomeListScreenState extends ConsumerState<IncomeListScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           children: [
+            PageIntro(
+              eyebrow: 'Cash in',
+              title: 'Income',
+              subtitle: 'Track incoming money by source, notes, account, and date.',
+              icon: Icons.trending_up_rounded,
+              trailing: IconButton(
+                onPressed: () => _showAddIncomeSheet(context, ref),
+                icon: const Icon(Icons.add),
+              ),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _searchController,
               decoration: InputDecoration(

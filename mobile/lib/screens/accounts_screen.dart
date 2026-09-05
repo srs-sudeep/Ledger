@@ -8,6 +8,7 @@ import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ledger_table.dart';
+import '../widgets/page_intro.dart';
 import '../widgets/summary_metric.dart';
 
 const _accountTypes = [
@@ -46,19 +47,15 @@ class AccountsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Accounts',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _showAddAccountDialog(context, ref),
-                  icon: const Icon(Icons.add_circle_outline, color: AppColors.surfaceTint),
-                ),
-              ],
+            PageIntro(
+              eyebrow: 'Balances',
+              title: 'Accounts',
+              subtitle: 'Review balances, then drill into income, transfers, and account activity.',
+              icon: Icons.account_balance_rounded,
+              trailing: IconButton(
+                onPressed: () => _showAddAccountDialog(context, ref),
+                icon: const Icon(Icons.add_circle_outline, color: AppColors.surfaceTint),
+              ),
             ),
             const SizedBox(height: 16),
             dashboard.when(

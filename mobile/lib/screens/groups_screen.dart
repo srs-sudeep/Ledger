@@ -6,6 +6,7 @@ import '../providers/data_providers.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/page_intro.dart';
 
 class GroupsScreen extends ConsumerWidget {
   const GroupsScreen({super.key});
@@ -21,45 +22,21 @@ class GroupsScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Groups',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'All your groups—tap one for members & expenses',
-                        style: const TextStyle(
-                          color: AppColors.secondary,
-                          fontSize: 14,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+            PageIntro(
+              eyebrow: 'Shared spending',
+              title: 'Groups',
+              subtitle: 'All your groups in one place. Tap any group for members, expenses, and settlements.',
+              icon: Icons.groups_rounded,
+              trailing: ElevatedButton.icon(
+                onPressed: () => _showCreateGroupDialog(context, ref),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Create'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  textStyle: const TextStyle(fontSize: 13),
+                  visualDensity: VisualDensity.compact,
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _showCreateGroupDialog(context, ref),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Create'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    textStyle: const TextStyle(fontSize: 13),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 24),
             groups.when(

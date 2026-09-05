@@ -8,6 +8,7 @@ import '../providers/data_providers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_entry_speed_dial.dart';
 import '../widgets/ledger_table.dart';
+import '../widgets/page_intro.dart';
 import '../widgets/summary_metric.dart';
 import '../widgets/tx_detail_sheet.dart';
 
@@ -45,40 +46,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: AppColors.surfaceContainerHigh,
-                    backgroundImage: profile.value?.avatarUrl != null
-                        ? NetworkImage(profile.value!.avatarUrl!)
-                        : null,
-                    child: profile.value?.avatarUrl == null
-                        ? const Icon(Icons.person, color: AppColors.secondary)
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Home',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Good morning, ${profile.value?.fullName?.split(' ').first ?? 'there'}',
-                          style: const TextStyle(color: AppColors.secondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => context.push('/analytics'),
-                    icon: const Icon(Icons.insights_outlined),
-                  ),
-                ],
+              PageIntro(
+                eyebrow: 'Overview',
+                title: 'Home',
+                subtitle: 'Good morning, ${profile.value?.fullName?.split(' ').first ?? 'there'}. Track balances, spend, and shared obligations.',
+                icon: Icons.home_rounded,
+                trailing: IconButton(
+                  onPressed: () => context.push('/analytics'),
+                  icon: const Icon(Icons.insights_outlined),
+                ),
               ),
               const SizedBox(height: 18),
               summary.when(

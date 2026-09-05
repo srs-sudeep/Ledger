@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../widgets/add_entry_speed_dial.dart';
 import '../widgets/filter_sheet.dart';
 import '../widgets/ledger_table.dart';
+import '../widgets/page_intro.dart';
 import '../widgets/summary_metric.dart';
 import '../widgets/tx_detail_sheet.dart';
 
@@ -118,36 +119,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.accountId == null ? 'Ledger' : 'Account activity',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.accountName ??
-                              'Transactions, transfers, and income in one view',
-                          style: const TextStyle(color: AppColors.secondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: (format) async {
-                      await ApiService.exportTransactions(format: format, query: _query);
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'csv', child: Text('Export CSV')),
-                      PopupMenuItem(value: 'excel', child: Text('Export Excel')),
-                      PopupMenuItem(value: 'pdf', child: Text('Export PDF')),
-                    ],
-                  ),
-                ],
+              PageIntro(
+                eyebrow: widget.accountId == null ? 'Ledger' : 'Account ledger',
+                title: widget.accountId == null ? 'Ledger' : 'Account activity',
+                subtitle: widget.accountName ?? 'Transactions, transfers, and income in one view.',
+                icon: Icons.receipt_long_rounded,
+                trailing: PopupMenuButton<String>(
+                  onSelected: (format) async {
+                    await ApiService.exportTransactions(format: format, query: _query);
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'csv', child: Text('Export CSV')),
+                    PopupMenuItem(value: 'excel', child: Text('Export Excel')),
+                    PopupMenuItem(value: 'pdf', child: Text('Export PDF')),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               TextField(

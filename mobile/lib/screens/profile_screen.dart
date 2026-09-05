@@ -8,6 +8,7 @@ import '../providers/auth_notifier.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brand_logo.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -15,68 +16,159 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
+    final data = profile.value;
+    final displayName = data?.fullName ?? 'User';
+    final email = ApiService.currentEmail ?? '';
 
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         children: [
           Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 28),
-          Center(
+          const SizedBox(height: 4),
+          const Text(
+            'Manage your identity, exports, and workspace preferences.',
+            style: TextStyle(color: AppColors.secondary),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xF2E9F0FF), Color(0xFAFFFFFF)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.18)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.onSurface.withValues(alpha: 0.06),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.surfaceContainerHigh,
-                  backgroundImage: profile.value?.avatarUrl != null
-                      ? NetworkImage(profile.value!.avatarUrl!)
-                      : null,
-                  child: profile.value?.avatarUrl == null
-                      ? const Icon(Icons.person, size: 40, color: AppColors.secondary)
-                      : null,
+                const Row(
+                  children: [
+                    BrandLogo(size: 44),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Personal workspace',
+                            style: TextStyle(
+                              color: AppColors.secondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Ledger mobile',
+                            style: TextStyle(
+                              color: AppColors.onSurface,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  profile.value?.fullName ?? 'User',
-                  style: Theme.of(context).textTheme.titleLarge,
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white.withValues(alpha: 0.88),
+                      backgroundImage:
+                          data?.avatarUrl != null ? NetworkImage(data!.avatarUrl!) : null,
+                      child: data?.avatarUrl == null
+                          ? const Icon(Icons.person, size: 28, color: AppColors.secondary)
+                          : null,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(displayName, style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 4),
+                          Text(
+                            email.isEmpty ? 'Signed in' : email,
+                            style: const TextStyle(color: AppColors.secondary, fontSize: 13.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  ApiService.currentEmail ?? '',
-                  style: const TextStyle(color: AppColors.secondary, fontSize: 14),
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _MiniStatChip(
+                      icon: Icons.call_rounded,
+                      label: 'Primary',
+                      value: data?.phonePrimary ?? 'Not set',
+                    ),
+                    _MiniStatChip(
+                      icon: Icons.phone_callback_rounded,
+                      label: 'Secondary',
+                      value: data?.phoneSecondary ?? 'Not set',
+                    ),
+                    _MiniStatChip(
+                      icon: Icons.currency_exchange_rounded,
+                      label: 'Currency',
+                      value: data?.defaultCurrency ?? kDefaultCurrency,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
+          const _SectionLabel('Preferences'),
+          const SizedBox(height: 10),
           _SettingsTile(
             icon: Icons.currency_exchange,
             title: 'Default Currency',
-            subtitle: profile.value?.defaultCurrency ?? kDefaultCurrency,
+            subtitle: data?.defaultCurrency ?? kDefaultCurrency,
             onTap: () => _showCurrencyPicker(context, ref),
           ),
           const SizedBox(height: 8),
           _SettingsTile(
             icon: Icons.edit,
             title: 'Edit Name',
-            subtitle: profile.value?.fullName ?? 'Tap to set',
+            subtitle: data?.fullName ?? 'Tap to set',
             onTap: () => _showNameEditor(context, ref),
           ),
           const SizedBox(height: 8),
           _SettingsTile(
             icon: Icons.phone_outlined,
             title: 'Primary Phone',
-            subtitle: profile.value?.phonePrimary ?? 'Tap to set',
+            subtitle: data?.phonePrimary ?? 'Tap to set',
             onTap: () => _showPhoneEditor(context, ref, true),
           ),
           const SizedBox(height: 8),
           _SettingsTile(
             icon: Icons.phone_callback_outlined,
             title: 'Secondary Phone',
-            subtitle: profile.value?.phoneSecondary ?? 'Tap to set',
+            subtitle: data?.phoneSecondary ?? 'Tap to set',
             onTap: () => _showPhoneEditor(context, ref, false),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+          const _SectionLabel('Tools'),
+          const SizedBox(height: 10),
           _SettingsTile(
             icon: Icons.insights_outlined,
             title: 'Analytics',
@@ -117,7 +209,7 @@ class ProfileScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.info_outline,
             title: 'About',
-            subtitle: 'Ledger v1.0.0',
+            subtitle: 'Ledger v0.1.0',
             onTap: () => context.push('/help'),
           ),
           const SizedBox(height: 28),
@@ -262,16 +354,24 @@ class _SettingsTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.18)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.onSurface.withValues(alpha: 0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: AppColors.onSurfaceVariant, size: 20),
             ),
@@ -300,6 +400,82 @@ class _SettingsTile extends StatelessWidget {
             const Icon(Icons.chevron_right, color: AppColors.secondary, size: 20),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        color: AppColors.secondary,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+}
+
+class _MiniStatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _MiniStatChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 140),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.secondary),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

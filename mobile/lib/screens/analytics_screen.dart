@@ -6,6 +6,7 @@ import '../currency_format.dart';
 import '../models/models.dart';
 import '../providers/data_providers.dart';
 import '../theme/app_theme.dart';
+import '../widgets/page_intro.dart';
 import '../widgets/summary_metric.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
@@ -25,7 +26,6 @@ class AnalyticsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(title: const Text('Analytics')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(analyticsProvider);
@@ -36,6 +36,13 @@ class AnalyticsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           children: [
+            const PageIntro(
+              eyebrow: 'Breakdowns',
+              title: 'Analytics',
+              subtitle: 'See what is driving personal spend, shared costs, account usage, and transfer flow.',
+              icon: Icons.insights_rounded,
+            ),
+            const SizedBox(height: 18),
             ledgerSummary.when(
               data: (summary) => Column(
                 children: [

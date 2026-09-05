@@ -8,6 +8,7 @@ import '../models/models.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/page_intro.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final String? groupId;
@@ -148,6 +149,18 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: PageIntro(
+                eyebrow: _isGroup ? 'Shared expense' : 'Personal expense',
+                title: 'Add expense',
+                subtitle: _isGroup
+                    ? 'Split a new group expense across members with the keypad below.'
+                    : 'Capture a personal expense with category and account details.',
+                icon: Icons.add_card_rounded,
+              ),
+            ),
+            const SizedBox(height: 12),
             // Toggle
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),

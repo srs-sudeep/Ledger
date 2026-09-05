@@ -7,6 +7,7 @@ import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ledger_table.dart';
+import '../widgets/page_intro.dart';
 
 class TransfersListScreen extends ConsumerStatefulWidget {
   const TransfersListScreen({super.key});
@@ -34,15 +35,6 @@ class _TransfersListScreenState extends ConsumerState<TransfersListScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text('Transfers'),
-        actions: [
-          IconButton(
-            onPressed: () => _showAddTransferSheet(context, ref),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(transferProvider(_query));
@@ -52,6 +44,17 @@ class _TransfersListScreenState extends ConsumerState<TransfersListScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           children: [
+            PageIntro(
+              eyebrow: 'Money movement',
+              title: 'Transfers',
+              subtitle: 'Follow money moving between your accounts with searchable history.',
+              icon: Icons.swap_horiz_rounded,
+              trailing: IconButton(
+                onPressed: () => _showAddTransferSheet(context, ref),
+                icon: const Icon(Icons.add),
+              ),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
