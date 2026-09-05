@@ -1,4 +1,18 @@
-from app.routers import accounts, analytics, auth, budgets, categories, dashboard, expenses, export, groups, income, recurring
+from app.routers import (
+    accounts,
+    analytics,
+    auth,
+    budgets,
+    categories,
+    dashboard,
+    expenses,
+    export,
+    groups,
+    income,
+    recurring,
+    transactions,
+    transfers,
+)
 
 __all__ = [
     "accounts",
@@ -12,4 +26,6 @@ __all__ = [
     "groups",
     "income",
     "recurring",
+    "transactions",
+    "transfers",
 ]

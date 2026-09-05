@@ -2,6 +2,18 @@
 
 Self-hosted expense tracker + group splitting. **PostgreSQL**, **FastAPI**, **React (Bun)**, **Flutter**.
 
+## Links
+
+Public access via **Tailscale Funnel** on the home server:
+
+| | URL |
+|--|-----|
+| Web | https://hp.tail936c6d.ts.net |
+| Docs | https://hp.tail936c6d.ts.net/docs |
+| App (APK) | https://hp.tail936c6d.ts.net/downloads/ledger.apk |
+
+LAN / Tailscale mesh (no Funnel): `http://192.168.1.6` · `http://100.118.104.48`
+
 ## Quick start
 
 ```bash
@@ -24,6 +36,28 @@ docker compose -f docker-compose.dev.yml up --build
 
 In production the API is **not** published on host `:8000` — nginx proxies `/api` only.
 
+## Seed data / reset DB
+
+Demo users (including **superadmin**), accounts, groups, and expenses:
+
+```bash
+# Destructive: wipe Postgres volume, recreate schema, seed demos
+./scripts/reset-and-seed.sh prod   # or: ./scripts/reset-and-seed.sh dev
+
+# Or only (re)seed inside a running stack
+docker compose -f docker-compose.prod.yml exec api python -m app.seed --reset
+```
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@example.com` | `Admin123!` | superadmin |
+| `alice@example.com` | `Alice123!` | user |
+| `bob@example.com` | `Bob123!` | user |
+
+Seed also creates: Cash/Checking/Wallet accounts, groups **Apartment** + **Tokyo Trip**, sample expenses/income/budget. Categories come from `backend/init.sql`.
+
+Google sign-in is **temporarily disabled** (web UI, mobile button, and `POST /api/auth/google`).
+
 ## Home server (LAN + Tailscale)
 
 Current host: **hp**
@@ -33,7 +67,9 @@ Current host: **hp**
 | LAN | http://192.168.1.6 |
 | Tailscale | http://100.118.104.48 |
 | Android APK | http://100.118.104.48/downloads/ledger.apk |
-| Portainer | http://192.168.1.6:9000 (LAN/Tailscale only) |
+| Portainer | http://192.168.1.6:9000 (LAN/Tailscale only) — create admin on first visit |
+
+If Portainer shows a restart / timed-out setup screen, restart it (`docker compose -f docker-compose.prod.yml up -d --force-recreate portainer`). It runs with `--no-setup-token` so you can create the admin password without the setup-token timeout.
 
 **Android:** install [Tailscale](https://tailscale.com/download) on the phone (for remote use), then download the APK. Built with `API_BASE_URL=http://100.118.104.48`.
 

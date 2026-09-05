@@ -69,8 +69,11 @@ class User(Base):
     google_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     email_verified: Mapped[bool] = mapped_column(default=True)
     full_name: Mapped[str | None] = mapped_column(Text)
+    phone_primary: Mapped[str | None] = mapped_column(Text)
+    phone_secondary: Mapped[str | None] = mapped_column(Text)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     default_currency: Mapped[str] = mapped_column(String, default="JPY")
+    is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -175,6 +178,38 @@ class Income(Base):
     currency: Mapped[str] = mapped_column(String, default="JPY")
     source: Mapped[str] = mapped_column(Text, nullable=False)
     date: Mapped[date] = mapped_column(Date, server_default=func.current_date())
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class Transfer(Base):
+    __tablename__ = "transfers"
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="transfers_amount_positive"),
+        CheckConstraint(
+            "from_account_id IS NULL OR to_account_id IS NULL OR from_account_id <> to_account_id",
+            name="transfers_accounts_differ",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    from_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="SET NULL")
+    )
+    to_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="SET NULL")
+    )
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str] = mapped_column(String, default="JPY")
+    date: Mapped[date] = mapped_column(Date, server_default=func.current_date())
+    kind: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

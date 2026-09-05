@@ -63,6 +63,7 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     restart: unless-stopped
+    command: ["--no-setup-token"]
     ports:
       - "${PORTAINER_PORT}:9000"
       - "${PORTAINER_HTTPS_PORT}:9443"

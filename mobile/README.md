@@ -12,6 +12,18 @@ flutter run --dart-define=API_BASE_URL=http://YOUR_LAN_IP
 
 Use a **LAN IP** or Tailscale IP, not `localhost`, on a physical device.
 
+## Demo login (seeded DB)
+
+After `./scripts/reset-and-seed.sh` on the server:
+
+| Email | Password |
+|-------|----------|
+| `admin@example.com` | `Admin123!` (superadmin) |
+| `alice@example.com` | `Alice123!` |
+| `bob@example.com` | `Bob123!` |
+
+Google sign-in is temporarily disabled on mobile as well.
+
 ## Android APK
 
 ```bash

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../theme/app_theme.dart';
 
 class ShellScreen extends StatelessWidget {
@@ -8,9 +9,10 @@ class ShellScreen extends StatelessWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/accounts')) return 1;
-    if (location.startsWith('/groups')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith('/transactions')) return 1;
+    if (location.startsWith('/accounts')) return 2;
+    if (location.startsWith('/groups')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -20,14 +22,9 @@ class ShellScreen extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/add-expense'),
-        child: const Icon(Icons.add, size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.85),
+          color: Colors.white.withValues(alpha: 0.92),
           boxShadow: [
             BoxShadow(
               color: AppColors.onSurface.withValues(alpha: 0.05),
@@ -36,44 +33,54 @@ class ShellScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: ClipRRect(
-          child: BottomNavigationBar(
-            currentIndex: index,
-            onTap: (i) {
-              switch (i) {
-                case 0:
-                  context.go('/dashboard');
-                case 1:
-                  context.go('/accounts');
-                case 2:
-                  context.go('/groups');
-                case 3:
-                  context.go('/profile');
-              }
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                activeIcon: Icon(Icons.account_balance_wallet),
-                label: 'Vault',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance_outlined),
-                activeIcon: Icon(Icons.account_balance),
-                label: 'Accounts',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.groups_outlined),
-                activeIcon: Icon(Icons.groups),
-                label: 'Groups',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
+        child: BottomNavigationBar(
+          currentIndex: index,
+          onTap: (i) {
+            switch (i) {
+              case 0:
+                context.go('/dashboard');
+                break;
+              case 1:
+                context.go('/transactions');
+                break;
+              case 2:
+                context.go('/accounts');
+                break;
+              case 3:
+                context.go('/groups');
+                break;
+              case 4:
+                context.go('/profile');
+                break;
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long_rounded),
+              label: 'Ledger',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_outlined),
+              activeIcon: Icon(Icons.account_balance_rounded),
+              label: 'Accounts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.groups_outlined),
+              activeIcon: Icon(Icons.groups_rounded),
+              label: 'Groups',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
         ),
       ),
     );

@@ -15,6 +15,8 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
     full_name: str | None = None
+    phone_primary: str | None = None
+    phone_secondary: str | None = None
 
 
 class UserLogin(BaseModel):
@@ -28,6 +30,8 @@ class GoogleAuthRequest(BaseModel):
 
 class UserUpdate(BaseModel):
     full_name: str | None = None
+    phone_primary: str | None = None
+    phone_secondary: str | None = None
     default_currency: str | None = None
     avatar_url: str | None = None
 
@@ -36,9 +40,12 @@ class UserOut(BaseModel):
     id: UUID
     email: EmailStr
     full_name: str | None
+    phone_primary: str | None
+    phone_secondary: str | None
     avatar_url: str | None
     default_currency: str
     email_verified: bool
+    is_superuser: bool = False
     created_at: DateTime
     updated_at: DateTime
 
@@ -114,6 +121,41 @@ class IncomeOut(BaseModel):
     currency: str
     source: str
     date: Date
+    notes: str | None
+    created_at: DateTime
+
+    model_config = {"from_attributes": True}
+
+
+class TransferCreate(BaseModel):
+    amount: int = Field(gt=0)
+    date: Date
+    from_account_id: UUID | None = None
+    to_account_id: UUID | None = None
+    currency: str = "JPY"
+    kind: str | None = None
+    notes: str | None = None
+
+
+class TransferUpdate(BaseModel):
+    amount: int | None = Field(default=None, gt=0)
+    date: Date | None = None
+    from_account_id: UUID | None = None
+    to_account_id: UUID | None = None
+    currency: str | None = None
+    kind: str | None = None
+    notes: str | None = None
+
+
+class TransferOut(BaseModel):
+    id: UUID
+    user_id: UUID
+    from_account_id: UUID | None
+    to_account_id: UUID | None
+    amount: int
+    currency: str
+    date: Date
+    kind: str | None
     notes: str | None
     created_at: DateTime
 
@@ -252,10 +294,44 @@ class DebtSimplifyOut(BaseModel):
 
 class DashboardSummary(BaseModel):
     net_worth: int
+    asset_total: int
+    liability_total: int
     group_net: int
     owed_to_me: int
     i_owe: int
     monthly_spend: int
+
+
+class TransactionOut(BaseModel):
+    id: str
+    tx_type: str
+    direction: str
+    amount: int
+    signed_amount: int
+    currency: str
+    title: str
+    merchant_original: str | None = None
+    merchant_display: str | None = None
+    date: Date
+    created_at: DateTime
+    category_id: UUID | None = None
+    category_name: str | None = None
+    account_id: UUID | None = None
+    account_name: str | None = None
+    counterparty_account_id: UUID | None = None
+    counterparty_account_name: str | None = None
+    notes: str | None = None
+
+
+class TransactionSummary(BaseModel):
+    transaction_count: int
+    income_total: int
+    expense_total: int
+    transfer_in_total: int
+    transfer_out_total: int
+    net_flow: int
+    top_categories: list[AnalyticsByCategory]
+    top_merchants: list[dict[str, int | str]]
 
 
 class AnalyticsByCategory(BaseModel):

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../currency_format.dart';
+import '../models/models.dart';
+import '../providers/auth_notifier.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
-import '../providers/auth_notifier.dart';
 import '../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -16,16 +18,10 @@ class ProfileScreen extends ConsumerWidget {
 
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         children: [
-          const SizedBox(height: 16),
-          Text(
-            'Profile',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 32),
-
-          // Avatar + name
+          Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 28),
           Center(
             child: Column(
               children: [
@@ -39,7 +35,7 @@ class ProfileScreen extends ConsumerWidget {
                       ? const Icon(Icons.person, size: 40, color: AppColors.secondary)
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Text(
                   profile.value?.fullName ?? 'User',
                   style: Theme.of(context).textTheme.titleLarge,
@@ -52,9 +48,7 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 32),
-
-          // Settings
+          const SizedBox(height: 28),
           _SettingsTile(
             icon: Icons.currency_exchange,
             title: 'Default Currency',
@@ -70,13 +64,63 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _SettingsTile(
+            icon: Icons.phone_outlined,
+            title: 'Primary Phone',
+            subtitle: profile.value?.phonePrimary ?? 'Tap to set',
+            onTap: () => _showPhoneEditor(context, ref, true),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.phone_callback_outlined,
+            title: 'Secondary Phone',
+            subtitle: profile.value?.phoneSecondary ?? 'Tap to set',
+            onTap: () => _showPhoneEditor(context, ref, false),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.insights_outlined,
+            title: 'Analytics',
+            subtitle: 'Open finance charts and category breakdowns',
+            onTap: () => context.push('/analytics'),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.ios_share_outlined,
+            title: 'Export CSV',
+            subtitle: 'Share current ledger as CSV',
+            onTap: () => ApiService.exportTransactions(
+              format: 'csv',
+              query: const LedgerQuery(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.file_present_outlined,
+            title: 'Export Excel',
+            subtitle: 'Share current ledger as Excel',
+            onTap: () => ApiService.exportTransactions(
+              format: 'excel',
+              query: const LedgerQuery(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.picture_as_pdf_outlined,
+            title: 'Export PDF',
+            subtitle: 'Share current ledger as PDF',
+            onTap: () => ApiService.exportTransactions(
+              format: 'pdf',
+              query: const LedgerQuery(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
             icon: Icons.info_outline,
             title: 'About',
             subtitle: 'Ledger v1.0.0',
             onTap: () => context.push('/help'),
           ),
-          const SizedBox(height: 32),
-
+          const SizedBox(height: 28),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -95,7 +139,6 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 100),
         ],
       ),
     );
@@ -147,6 +190,45 @@ class ProfileScreen extends ConsumerWidget {
             onPressed: () async {
               await ApiService.updateProfile(
                 fullName: controller.text.trim(),
+              );
+              ref.invalidate(profileProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPhoneEditor(BuildContext context, WidgetRef ref, bool isPrimary) {
+    final profile = ref.read(profileProvider).value;
+    final controller = TextEditingController(
+      text: isPrimary ? (profile?.phonePrimary ?? '') : (profile?.phoneSecondary ?? ''),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isPrimary ? 'Edit Primary Phone' : 'Edit Secondary Phone'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: isPrimary ? 'Primary phone number' : 'Secondary phone number',
+          ),
+          autofocus: true,
+          keyboardType: TextInputType.phone,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ApiService.updateProfile(
+                phonePrimary: isPrimary ? controller.text.trim() : null,
+                phoneSecondary: isPrimary ? null : controller.text.trim(),
               );
               ref.invalidate(profileProvider);
               if (ctx.mounted) Navigator.pop(ctx);

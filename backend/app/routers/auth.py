@@ -1,11 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from google.auth.transport import requests as google_requests
-from google.oauth2 import id_token
+# Google sign-in temporarily disabled
+# from google.auth.transport import requests as google_requests
+# from google.oauth2 import id_token
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.database import get_db
 from app.models import User
 from app.schemas import (
@@ -34,6 +34,8 @@ def register(body: UserRegister, db: Annotated[Session, Depends(get_db)]):
         email=body.email.lower(),
         password_hash=hash_password(body.password),
         full_name=body.full_name,
+        phone_primary=body.phone_primary,
+        phone_secondary=body.phone_secondary,
         email_verified=True,
     )
     db.add(user)
@@ -58,57 +60,15 @@ def login(body: UserLogin, db: Annotated[Session, Depends(get_db)]):
 
 
 @router.post("/google", response_model=TokenResponse)
-def google_auth(body: GoogleAuthRequest, db: Annotated[Session, Depends(get_db)]):
-    if not settings.google_client_id:
-        raise HTTPException(
-            status.HTTP_501_NOT_IMPLEMENTED,
-            "Google sign-in is not configured (set GOOGLE_CLIENT_ID in .env)",
-        )
-    try:
-        idinfo = id_token.verify_oauth2_token(
-            body.id_token,
-            google_requests.Request(),
-            settings.google_client_id,
-        )
-    except ValueError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid Google token: {e}")
-
-    google_sub = idinfo.get("sub")
-    email = idinfo.get("email")
-    if not google_sub or not email:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Google account missing email")
-
-    email = email.lower()
-    user = (
-        db.query(User)
-        .filter((User.google_id == google_sub) | (User.email == email))
-        .first()
+def google_auth(
+    _body: GoogleAuthRequest,
+    _db: Annotated[Session, Depends(get_db)],
+):
+    # Google sign-in temporarily disabled — restore body from git history when re-enabling.
+    raise HTTPException(
+        status.HTTP_501_NOT_IMPLEMENTED,
+        "Google sign-in is temporarily disabled",
     )
-
-    if user:
-        if not user.google_id:
-            if user.password_hash:
-                user.google_id = google_sub
-            else:
-                user.google_id = google_sub
-        user.email_verified = True
-        if idinfo.get("name") and not user.full_name:
-            user.full_name = idinfo.get("name")
-        if idinfo.get("picture") and not user.avatar_url:
-            user.avatar_url = idinfo.get("picture")
-    else:
-        user = User(
-            email=email,
-            google_id=google_sub,
-            full_name=idinfo.get("name"),
-            avatar_url=idinfo.get("picture"),
-            email_verified=True,
-        )
-        db.add(user)
-
-    db.commit()
-    db.refresh(user)
-    return TokenResponse(access_token=create_access_token(user.id))
 
 
 @router.get("/me", response_model=UserOut)
@@ -124,6 +84,10 @@ def update_me(
 ):
     if body.full_name is not None:
         user.full_name = body.full_name
+    if body.phone_primary is not None:
+        user.phone_primary = body.phone_primary
+    if body.phone_secondary is not None:
+        user.phone_secondary = body.phone_secondary
     if body.default_currency is not None:
         user.default_currency = body.default_currency
     if body.avatar_url is not None:

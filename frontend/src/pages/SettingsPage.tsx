@@ -1,39 +1,31 @@
 import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { authApi } from "@/api/client";
+import { authApi, downloadWithAuth } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CURRENCY_OPTIONS } from "@/lib/currencies";
 import { Select } from "@/components/ui/select";
 import { Card, CardTitle } from "@/components/ui/card";
-
-function downloadWithAuth(path: string, filename: string) {
-  const token = localStorage.getItem("ledger_token");
-  return fetch(path, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-    .then(async (res) => {
-      if (!res.ok) throw new Error("Download failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-}
+import { BrandLogo } from "@/components/BrandLogo";
+import { SITE_NAME, SITE_UI_TAGLINE } from "@/lib/site";
 
 export function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name ?? "");
+  const [phonePrimary, setPhonePrimary] = useState(user?.phone_primary ?? "");
+  const [phoneSecondary, setPhoneSecondary] = useState(user?.phone_secondary ?? "");
   const [currency, setCurrency] = useState(user?.default_currency ?? "JPY");
   const [saved, setSaved] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const save = async () => {
-    await authApi.updateMe({ full_name: fullName, default_currency: currency });
+    await authApi.updateMe({
+      full_name: fullName,
+      phone_primary: phonePrimary,
+      phone_secondary: phoneSecondary,
+      default_currency: currency,
+    });
     await refreshUser();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -61,6 +53,8 @@ export function SettingsPage() {
       <div className="space-y-6">
         <h1 className="text-2xl font-headline font-bold">Settings</h1>
         <Input id="fn" label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        <Input id="phone1" label="Primary phone" value={phonePrimary} onChange={(e) => setPhonePrimary(e.target.value)} />
+        <Input id="phone2" label="Secondary phone" value={phoneSecondary} onChange={(e) => setPhoneSecondary(e.target.value)} />
         <Select
           id="cur"
           label="Default currency"
@@ -76,11 +70,17 @@ export function SettingsPage() {
       <Card className="p-6 space-y-3">
         <CardTitle>Export / import</CardTitle>
         <p className="text-sm text-secondary">
-          Download CSV backups or import expenses (columns: title, amount in minor units, date, currency, notes).
+          Download readable ledger exports with account/category names and transaction metadata, or import expenses.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => downloadWithAuth("/api/export/expenses.csv", "expenses.csv")}>
-            Export expenses
+          <Button variant="outline" onClick={() => downloadWithAuth("/api/export/transactions?format=csv", "transactions.csv")}>
+            Export ledger CSV
+          </Button>
+          <Button variant="outline" onClick={() => downloadWithAuth("/api/export/transactions?format=excel", "transactions.xls")}>
+            Export ledger Excel
+          </Button>
+          <Button variant="outline" onClick={() => downloadWithAuth("/api/export/transactions?format=pdf", "transactions.pdf")}>
+            Export ledger PDF
           </Button>
           <Button variant="outline" onClick={() => downloadWithAuth("/api/export/accounts.csv", "accounts.csv")}>
             Export accounts
@@ -102,6 +102,14 @@ export function SettingsPage() {
         </div>
         {importMsg && <p className="text-sm text-secondary">{importMsg}</p>}
       </Card>
+
+      <div className="flex items-center gap-3 pt-2">
+        <BrandLogo size={40} />
+        <div>
+          <p className="font-headline font-bold text-on-surface">{SITE_NAME}</p>
+          <p className="text-xs text-secondary uppercase tracking-wide">{SITE_UI_TAGLINE}</p>
+        </div>
+      </div>
     </div>
   );
 }

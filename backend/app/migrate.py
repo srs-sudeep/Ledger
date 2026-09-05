@@ -1,4 +1,4 @@
-"""Apply numbered SQL migrations from backend/migrations/ on startup."""
+"""Apply SQL baseline files from backend/migrations/ on startup."""
 from __future__ import annotations
 
 import logging

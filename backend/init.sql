@@ -16,8 +16,11 @@ CREATE TABLE users (
   google_id TEXT UNIQUE,
   email_verified BOOLEAN NOT NULL DEFAULT true,
   full_name TEXT,
+  phone_primary TEXT,
+  phone_secondary TEXT,
   avatar_url TEXT,
   default_currency TEXT NOT NULL DEFAULT 'JPY',
+  is_superuser BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT users_auth_method CHECK (password_hash IS NOT NULL OR google_id IS NOT NULL)
@@ -75,6 +78,22 @@ CREATE TABLE income (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE transfers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  from_account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  to_account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  amount INTEGER NOT NULL CHECK (amount > 0),
+  currency TEXT NOT NULL DEFAULT 'JPY',
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  kind TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT transfers_accounts_differ CHECK (
+    from_account_id IS NULL OR to_account_id IS NULL OR from_account_id <> to_account_id
+  )
+);
+
 CREATE TABLE expenses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
@@ -125,6 +144,8 @@ CREATE TABLE group_invitations (
 CREATE INDEX idx_expenses_payer_id ON expenses(payer_id);
 CREATE INDEX idx_expenses_group_id ON expenses(group_id);
 CREATE INDEX idx_expenses_date ON expenses(date DESC);
+CREATE INDEX idx_transfers_user_id ON transfers(user_id);
+CREATE INDEX idx_transfers_date ON transfers(date DESC);
 CREATE INDEX idx_group_members_group_id ON group_members(group_id);
 CREATE INDEX idx_group_members_user_id ON group_members(user_id);
 CREATE INDEX idx_accounts_user_id ON accounts(user_id);

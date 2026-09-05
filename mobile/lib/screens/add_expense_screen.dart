@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../currency_format.dart';
+import '../models/models.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -108,6 +109,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
       ref.invalidate(personalExpensesProvider);
       ref.invalidate(recentExpensesProvider);
+      ref.invalidate(recentTransactionsProvider);
+      ref.invalidate(dashboardSummaryProvider);
+      ref.invalidate(transactionSummaryProvider(const LedgerQuery(pageSize: 8)));
       if (_selectedAccountId != null) {
         ref.invalidate(accountsProvider);
       }

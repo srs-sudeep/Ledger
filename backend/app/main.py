@@ -14,6 +14,8 @@ from app.routers import (
     groups,
     income,
     recurring,
+    transactions,
+    transfers,
 )
 
 app = FastAPI(title="Ledger API", version="1.1.0")
@@ -31,7 +33,9 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(categories.router, prefix="/api")
 app.include_router(accounts.router, prefix="/api")
 app.include_router(income.router, prefix="/api")
+app.include_router(transfers.router, prefix="/api")
 app.include_router(expenses.router, prefix="/api")
+app.include_router(transactions.router, prefix="/api")
 app.include_router(groups.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")

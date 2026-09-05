@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../currency_format.dart';
@@ -11,7 +14,7 @@ class ApiService {
   static const _tokenKey = 'ledger_token';
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8000',
+    defaultValue: 'https://hp.tail936c6d.ts.net',
   );
   static String? _token;
   static String? _currentUserId;
@@ -45,6 +48,38 @@ class ApiService {
     }
   }
 
+  static String _errorMessage(http.Response res) {
+    final fallback = 'Request failed (${res.statusCode})';
+    try {
+      final data = jsonDecode(res.body);
+      if (data is Map && data['detail'] != null) {
+        final detail = data['detail'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail;
+        }
+        if (detail is List && detail.isNotEmpty) {
+          final parts = <String>[];
+          for (final item in detail) {
+            if (item is Map && item['msg'] != null) {
+              final loc = item['loc'];
+              final field = loc is List && loc.isNotEmpty
+                  ? loc.last.toString()
+                  : null;
+              final msg = item['msg'].toString();
+              parts.add(field != null ? '$field: $msg' : msg);
+            } else {
+              parts.add(item.toString());
+            }
+          }
+          if (parts.isNotEmpty) return parts.join('\n');
+        }
+      }
+    } catch (_) {}
+    final phrase = res.reasonPhrase?.trim();
+    if (phrase != null && phrase.isNotEmpty) return phrase;
+    return fallback;
+  }
+
   static Future<dynamic> _request(
     String method,
     String path, {
@@ -56,36 +91,39 @@ class ApiService {
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
     final http.Response res;
-    switch (method) {
-      case 'GET':
-        res = await http.get(uri, headers: headers);
-        break;
-      case 'POST':
-        res = await http.post(uri, headers: headers, body: jsonEncode(body ?? {}));
-        break;
-      case 'PATCH':
-        res = await http.patch(uri, headers: headers, body: jsonEncode(body ?? {}));
-        break;
-      case 'DELETE':
-        res = await http.delete(uri, headers: headers);
-        break;
-      default:
-        throw Exception('Unsupported method');
+    try {
+      switch (method) {
+        case 'GET':
+          res = await http.get(uri, headers: headers);
+          break;
+        case 'POST':
+          res = await http.post(uri, headers: headers, body: jsonEncode(body ?? {}));
+          break;
+        case 'PATCH':
+          res = await http.patch(uri, headers: headers, body: jsonEncode(body ?? {}));
+          break;
+        case 'DELETE':
+          res = await http.delete(uri, headers: headers);
+          break;
+        default:
+          throw Exception('Unsupported method');
+      }
+    } catch (e) {
+      throw Exception(
+        'Could not reach server ($_baseUrl). Check your connection.\n$e',
+      );
     }
     if (res.statusCode >= 400) {
-      String msg = res.reasonPhrase ?? 'Request failed';
-      try {
-        final data = jsonDecode(res.body);
-        if (data is Map && data['detail'] != null) {
-          msg = data['detail'] is String
-              ? data['detail'] as String
-              : jsonEncode(data['detail']);
-        }
-      } catch (_) {}
-      throw Exception(msg);
+      throw Exception(_errorMessage(res));
     }
     if (res.statusCode == 204 || res.body.isEmpty) return null;
     return jsonDecode(res.body);
+  }
+
+  static Uri _uri(String path, [Map<String, String>? query]) {
+    final base = Uri.parse('$_baseUrl$path');
+    if (query == null || query.isEmpty) return base;
+    return base.replace(queryParameters: query);
   }
 
   // Auth
@@ -98,11 +136,19 @@ class ApiService {
     await getProfile();
   }
 
-  static Future<void> signUp(String email, String password, String fullName) async {
+  static Future<void> signUp(
+    String email,
+    String password,
+    String fullName, {
+    String? phonePrimary,
+    String? phoneSecondary,
+  }) async {
     final data = await _request('POST', '/api/auth/register', body: {
       'email': email,
       'password': password,
       'full_name': fullName,
+      'phone_primary': phonePrimary,
+      'phone_secondary': phoneSecondary,
     }) as Map<String, dynamic>;
     await _saveToken(data['access_token'] as String);
     await getProfile();
@@ -155,9 +201,16 @@ class ApiService {
     return Profile.fromJson(data);
   }
 
-  static Future<void> updateProfile({String? fullName, String? currency}) async {
+  static Future<void> updateProfile({
+    String? fullName,
+    String? phonePrimary,
+    String? phoneSecondary,
+    String? currency,
+  }) async {
     final updates = <String, dynamic>{};
     if (fullName != null) updates['full_name'] = fullName;
+    if (phonePrimary != null) updates['phone_primary'] = phonePrimary;
+    if (phoneSecondary != null) updates['phone_secondary'] = phoneSecondary;
     if (currency != null) updates['default_currency'] = currency;
     if (updates.isEmpty) return;
     await _request('PATCH', '/api/auth/me', body: updates);
@@ -339,16 +392,10 @@ class ApiService {
   }
 
   // Dashboard Aggregates
-  static Future<int> getTotalOwedToMe() async {
+  static Future<DashboardSummary> getDashboardSummary() async {
     final data =
         await _request('GET', '/api/dashboard/summary') as Map<String, dynamic>;
-    return data['owed_to_me'] as int? ?? 0;
-  }
-
-  static Future<int> getTotalIOwe() async {
-    final data =
-        await _request('GET', '/api/dashboard/summary') as Map<String, dynamic>;
-    return data['i_owe'] as int? ?? 0;
+    return DashboardSummary.fromJson(data);
   }
 
   // Accounts
@@ -378,9 +425,22 @@ class ApiService {
   }
 
   // Income
-  static Future<List<Income>> getRecentIncome({int limit = 10}) async {
-    final data = await _request('GET', '/api/income?limit=$limit') as List;
+  static Future<List<Income>> getIncome(EntryQuery query) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/income', query.toQueryParameters()).toString().replaceFirst(_baseUrl, ''),
+    ) as List;
     return data.map((e) => Income.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  static Future<int> getIncomeCount(EntryQuery query) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/income/count', query.toQueryParameters(includePaging: false))
+          .toString()
+          .replaceFirst(_baseUrl, ''),
+    ) as Map<String, dynamic>;
+    return data['count'] as int? ?? 0;
   }
 
   static Future<void> deleteIncome(String id) async {
@@ -403,5 +463,110 @@ class ApiService {
       'currency': currency ?? kDefaultCurrency,
       'notes': notes,
     });
+  }
+
+  // Transfers
+  static Future<List<Transfer>> getTransfers(EntryQuery query) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/transfers', query.toQueryParameters()).toString().replaceFirst(_baseUrl, ''),
+    ) as List;
+    return data.map((e) => Transfer.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  static Future<int> getTransferCount(EntryQuery query) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/transfers/count', query.toQueryParameters(includePaging: false))
+          .toString()
+          .replaceFirst(_baseUrl, ''),
+    ) as Map<String, dynamic>;
+    return data['count'] as int? ?? 0;
+  }
+
+  static Future<void> addTransfer({
+    required int amount,
+    required String date,
+    String? fromAccountId,
+    String? toAccountId,
+    String? currency,
+    String? kind,
+    String? notes,
+  }) async {
+    await _request('POST', '/api/transfers', body: {
+      'amount': amount,
+      'date': date,
+      'from_account_id': fromAccountId,
+      'to_account_id': toAccountId,
+      'currency': currency ?? kDefaultCurrency,
+      'kind': kind,
+      'notes': notes,
+    });
+  }
+
+  static Future<void> deleteTransfer(String id) async {
+    await _request('DELETE', '/api/transfers/$id');
+  }
+
+  static Future<List<LedgerTransaction>> getTransactions(LedgerQuery query) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/transactions', query.toQueryParameters())
+          .toString()
+          .replaceFirst(_baseUrl, ''),
+    ) as List;
+    return data
+        .map((e) => LedgerTransaction.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  static Future<LedgerTransactionSummary> getTransactionSummary(
+    LedgerQuery query,
+  ) async {
+    final data = await _request(
+      'GET',
+      _uri('/api/transactions/summary', query.toQueryParameters(includePaging: false))
+          .toString()
+          .replaceFirst(_baseUrl, ''),
+    ) as Map<String, dynamic>;
+    return LedgerTransactionSummary.fromJson(data);
+  }
+
+  static Future<AnalyticsSummary> getAnalyticsSummary({int months = 6}) async {
+    final data = await _request(
+      'GET',
+      '/api/analytics/summary?months=$months',
+    ) as Map<String, dynamic>;
+    return AnalyticsSummary.fromJson(data);
+  }
+
+  static Future<void> exportTransactions({
+    required String format,
+    required LedgerQuery query,
+  }) async {
+    final uri = _uri(
+      '/api/export/transactions',
+      {
+        'format': format,
+        ...query.toQueryParameters(includePaging: false),
+      },
+    );
+    final headers = <String, String>{
+      if (_token != null) 'Authorization': 'Bearer $_token',
+    };
+    final res = await http.get(uri, headers: headers);
+    if (res.statusCode >= 400) {
+      throw Exception(_errorMessage(res));
+    }
+    final directory = await getTemporaryDirectory();
+    final extension = format == 'excel' ? 'xls' : format;
+    final file = File('${directory.path}/ledger_transactions.$extension');
+    await file.writeAsBytes(res.bodyBytes);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        text: 'Ledger transactions export',
+      ),
+    );
   }
 }

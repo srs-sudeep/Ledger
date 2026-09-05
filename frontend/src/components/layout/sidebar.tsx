@@ -7,7 +7,7 @@ import {
   Users,
   Wallet,
   LogOut,
-  Plus,
+  ReceiptText,
   Loader2,
   Settings,
   PiggyBank,
@@ -15,12 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { SITE_NAME, SITE_UI_TAGLINE } from "@/lib/site";
+import { BrandLogo } from "@/components/BrandLogo";
+import { SITE_UI_TAGLINE } from "@/lib/site";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/accounts", label: "Accounts", icon: Wallet },
-  { href: "/personal", label: "Transactions", icon: Receipt },
+  { href: "/transactions", label: "Transactions", icon: Receipt },
   { href: "/groups", label: "Groups", icon: Users },
   { href: "/budgets", label: "Budgets", icon: PiggyBank },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
@@ -44,12 +45,10 @@ export function Sidebar() {
           <div className="h-full bg-primary animate-progress-bar rounded-full" />
         </div>
       )}
-      <aside className="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container-low flex-col py-8 px-4 z-50">
-        <div className="mb-10 px-2">
-          <h1 className="text-lg font-bold text-on-surface font-headline tracking-tight">
-            {SITE_NAME}
-          </h1>
-          <p className="text-[10px] text-secondary font-medium tracking-wide uppercase">
+      <aside className="hidden md:flex h-screen w-60 fixed left-0 top-0 border-r border-outline/10 bg-surface-container-low flex-col py-6 px-4 z-50">
+        <div className="mb-8 px-2">
+          <BrandLogo size={36} showWordmark wordmarkClassName="text-lg" />
+          <p className="mt-1 pl-[48px] text-[10px] text-secondary font-medium tracking-wide uppercase">
             {SITE_UI_TAGLINE}
           </p>
         </div>
@@ -65,7 +64,7 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left",
                   isActive
-                    ? "text-on-surface bg-surface-container-lowest shadow-sm font-semibold"
+                    ? "text-on-surface bg-white shadow-sm font-semibold"
                     : "text-secondary hover:text-on-surface hover:bg-surface-container"
                 )}
               >
@@ -79,10 +78,10 @@ export function Sidebar() {
           })}
         </nav>
         <div className="mt-auto space-y-1 pt-4">
-          <Link to="/personal">
+          <Link to="/transactions">
             <Button className="w-full mb-4 gap-2">
-              <Plus size={18} />
-              Add Expense
+              <ReceiptText size={18} />
+              Open Ledger
             </Button>
           </Link>
           <button

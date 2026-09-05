@@ -47,6 +47,16 @@ def dashboard_summary(
         .filter(Account.user_id == user.id)
         .scalar()
     )
+    asset_total = (
+        db.query(func.coalesce(func.sum(Account.balance), 0))
+        .filter(Account.user_id == user.id, Account.balance > 0)
+        .scalar()
+    )
+    liability_total = (
+        db.query(func.coalesce(func.sum(Account.balance), 0))
+        .filter(Account.user_id == user.id, Account.balance < 0)
+        .scalar()
+    )
 
     memberships = (
         db.query(GroupMember.group_id)
@@ -82,6 +92,8 @@ def dashboard_summary(
 
     return DashboardSummary(
         net_worth=int(net_worth or 0),
+        asset_total=int(asset_total or 0),
+        liability_total=abs(int(liability_total or 0)),
         group_net=owed_to_me - i_owe,
         owed_to_me=owed_to_me,
         i_owe=i_owe,

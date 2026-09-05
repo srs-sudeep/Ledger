@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../providers/auth_notifier.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brand_logo.dart';
 
 const _googleClientId = String.fromEnvironment('GOOGLE_CLIENT_ID', defaultValue: '');
 
@@ -24,6 +25,8 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _phonePrimaryController = TextEditingController();
+  final _phoneSecondaryController = TextEditingController();
 
   @override
   void dispose() {
@@ -31,6 +34,8 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameController.dispose();
+    _phonePrimaryController.dispose();
+    _phoneSecondaryController.dispose();
     super.dispose();
   }
 
@@ -60,13 +65,20 @@ class _AuthScreenState extends State<AuthScreen> {
           _emailController.text.trim(),
           _passwordController.text,
           _nameController.text.trim(),
+          phonePrimary: _phonePrimaryController.text.trim().isEmpty
+              ? null
+              : _phonePrimaryController.text.trim(),
+          phoneSecondary: _phoneSecondaryController.text.trim().isEmpty
+              ? null
+              : _phoneSecondaryController.text.trim(),
         );
       }
 
       authNotifier.refresh();
       if (mounted) context.go('/dashboard');
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      final raw = e.toString().replaceFirst('Exception: ', '').trim();
+      setState(() => _error = raw.isEmpty ? 'Something went wrong. Please try again.' : raw);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -82,7 +94,8 @@ class _AuthScreenState extends State<AuthScreen> {
       authNotifier.refresh();
       if (mounted) context.go('/dashboard');
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      final raw = e.toString().replaceFirst('Exception: ', '').trim();
+      setState(() => _error = raw.isEmpty ? 'Something went wrong. Please try again.' : raw);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -98,23 +111,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [AppColors.primary, AppColors.primaryContainer],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.account_balance_wallet,
-                    color: AppColors.onPrimary,
-                    size: 32,
-                  ),
-                ),
+                const BrandLogo(size: 72),
                 const SizedBox(height: 24),
                 Text(
                   _isLogin ? 'Welcome back' : 'Create account',
@@ -150,6 +147,18 @@ class _AuthScreenState extends State<AuthScreen> {
                     controller: _nameController,
                     decoration: const InputDecoration(labelText: 'Full Name'),
                     textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _phonePrimaryController,
+                    decoration: const InputDecoration(labelText: 'Primary Phone'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _phoneSecondaryController,
+                    decoration: const InputDecoration(labelText: 'Secondary Phone'),
+                    keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -250,14 +259,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
-                ] else ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Google sign-in: pass GOOGLE_CLIENT_ID via --dart-define',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.secondary, fontSize: 11),
-                  ),
                 ],
+                // Google sign-in temporarily disabled — no hint when off
 
                 TextButton(
                   onPressed: () => setState(() {

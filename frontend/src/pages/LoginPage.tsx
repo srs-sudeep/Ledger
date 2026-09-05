@@ -4,8 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { GoogleSignInButton, GoogleSignInHint } from "@/components/auth/GoogleSignInButton";
+import { BrandLogo } from "@/components/BrandLogo";
 import { SITE_NAME } from "@/lib/site";
+// Google sign-in temporarily disabled
+// import { GoogleSignInButton, GoogleSignInHint } from "@/components/auth/GoogleSignInButton";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -32,8 +34,8 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface p-4">
       <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-ambient p-8">
-        <h1 className="text-2xl font-headline font-bold mb-1">{SITE_NAME}</h1>
-        <p className="text-secondary text-sm mb-6">Sign in to your ledger</p>
+        <BrandLogo size={56} showWordmark wordmarkClassName="text-2xl" className="mb-1" />
+        <p className="text-secondary text-sm mb-6">Sign in to your {SITE_NAME.toLowerCase()}</p>
         <form onSubmit={onSubmit} className="space-y-4">
           <Input
             id="email"
@@ -57,8 +59,10 @@ export function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
+        {/* Google sign-in temporarily disabled
         <GoogleSignInButton />
         <GoogleSignInHint />
+        */}
         <p className="text-sm text-secondary mt-4 text-center">
           No account?{" "}
           <Link to="/register" className="text-surface-tint font-medium">

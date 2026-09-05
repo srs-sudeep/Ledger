@@ -44,11 +44,40 @@ export async function api<T>(
   return res.json() as Promise<T>;
 }
 
+export async function downloadWithAuth(path: string, filename: string) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    throw new ApiError("Download failed", res.status);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export const authApi = {
-  register: (email: string, password: string, full_name?: string) =>
+  register: (
+    email: string,
+    password: string,
+    full_name?: string,
+    phone_primary?: string,
+    phone_secondary?: string
+  ) =>
     api<{ access_token: string }>("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password, full_name }),
+      body: JSON.stringify({
+        email,
+        password,
+        full_name,
+        phone_primary,
+        phone_secondary,
+      }),
     }),
   login: (email: string, password: string) =>
     api<{ access_token: string }>("/api/auth/login", {
@@ -61,7 +90,12 @@ export const authApi = {
       body: JSON.stringify({ id_token }),
     }),
   me: () => api<import("@/lib/types").Profile & { email: string }>("/api/auth/me"),
-  updateMe: (data: { full_name?: string; default_currency?: string }) =>
+  updateMe: (data: {
+    full_name?: string;
+    phone_primary?: string;
+    phone_secondary?: string;
+    default_currency?: string;
+  }) =>
     api<import("@/lib/types").Profile & { email: string }>("/api/auth/me", {
       method: "PATCH",
       body: JSON.stringify(data),

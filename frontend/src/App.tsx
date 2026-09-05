@@ -12,6 +12,7 @@ import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { BudgetsPage } from "@/pages/BudgetsPage";
 import { Spinner } from "@/components/ui/spinner";
+import { TransactionsPage } from "@/pages/TransactionsPage";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -63,6 +64,8 @@ export default function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/accounts/:accountId" element={<TransactionsPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/personal" element={<PersonalPage />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/:id" element={<GroupDetailPage />} />

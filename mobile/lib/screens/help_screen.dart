@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brand_logo.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -19,19 +20,7 @@ class HelpScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      size: 40,
-                      color: AppColors.surfaceTint,
-                    ),
-                  ),
+                  const BrandLogo(size: 88),
                   const SizedBox(height: 16),
                   Text(
                     'Ledger',
