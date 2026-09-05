@@ -3,6 +3,7 @@ node_modules/
 
 # Environment (active copy — use .env.dev or .env.prod as source)
 .env
+scripts/.env.*
 
 # Published APKs on the home server (built by CI / scripts/build-apk.sh)
 artifacts/apk/*.apk
@@ -41,3 +42,5 @@ frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo
 __pycache__/
+**/__pycache__/
+*.py[cod]
