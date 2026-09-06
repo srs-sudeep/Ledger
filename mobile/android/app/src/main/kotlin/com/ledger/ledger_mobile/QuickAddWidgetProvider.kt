@@ -30,9 +30,8 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
 
         private fun buildViews(context: Context): RemoteViews {
             return RemoteViews(context.packageName, R.layout.quick_add_widget).apply {
-                setOnClickPendingIntent(R.id.quick_add_widget_title, pendingIntent(context, "wallet"))
-                setOnClickPendingIntent(R.id.quick_add_wallet, pendingIntent(context, "wallet"))
-                setOnClickPendingIntent(R.id.quick_add_paypay, pendingIntent(context, "paypay"))
+                setOnClickPendingIntent(R.id.quick_add_widget_title, pendingIntent(context, "credit_card"))
+                setOnClickPendingIntent(R.id.quick_add_credit_card, pendingIntent(context, "credit_card"))
                 setOnClickPendingIntent(R.id.quick_add_suica, pendingIntent(context, "suica"))
                 setOnClickPendingIntent(R.id.quick_add_paypay_qr, pendingIntent(context, "paypay_qr"))
                 setOnClickPendingIntent(R.id.quick_add_cash, pendingIntent(context, "cash"))
@@ -42,7 +41,7 @@ class QuickAddWidgetProvider : AppWidgetProvider() {
         private fun pendingIntent(context: Context, source: String): PendingIntent {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("ledger://quick-add?source=$source"),
+                Uri.parse("ledger:///quick-add?source=$source"),
                 context,
                 MainActivity::class.java
             ).apply {

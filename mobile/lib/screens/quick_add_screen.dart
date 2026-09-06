@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../currency_format.dart';
 import '../models/models.dart';
@@ -20,18 +21,11 @@ class QuickAddScreen extends ConsumerStatefulWidget {
 class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
   static const _presets = <_QuickAddPreset>[
     _QuickAddPreset(
-      id: 'wallet',
-      label: 'Wallet',
-      icon: Icons.account_balance_wallet_rounded,
-      keywords: ['wallet'],
-      accountTypes: ['wallet'],
-    ),
-    _QuickAddPreset(
-      id: 'paypay',
-      label: 'PayPay',
-      icon: Icons.payments_rounded,
-      keywords: ['paypay'],
-      accountTypes: ['wallet'],
+      id: 'credit_card',
+      label: 'Credit Card',
+      icon: Icons.credit_card_rounded,
+      keywords: ['amex', 'credit', 'card', 'paypay card', 'wallet'],
+      accountTypes: ['credit_card', 'debit_card', 'wallet'],
     ),
     _QuickAddPreset(
       id: 'suica',
@@ -59,7 +53,7 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
   final _amountController = TextEditingController();
   final _memoController = TextEditingController();
   final _amountFocusNode = FocusNode();
-  String _selectedPresetId = 'wallet';
+  String _selectedPresetId = 'credit_card';
   String _selectedCategoryId = '';
   String _selectedAccountId = '';
   bool _saving = false;
@@ -109,11 +103,16 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
             MediaQuery.of(context).viewInsets.bottom + 24,
           ),
           children: [
-            const PageIntro(
+            PageIntro(
               eyebrow: 'Fast capture',
               title: 'Quick Add',
-              subtitle: 'Save a payment in a few taps without changing the main expense flow.',
+              subtitle: 'Save a payment in a few taps, then jump back into the full app whenever you want.',
               icon: Icons.bolt_rounded,
+              trailing: OutlinedButton.icon(
+                onPressed: () => context.go('/dashboard'),
+                icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                label: const Text('Open app'),
+              ),
             ),
             const SizedBox(height: 18),
             Wrap(
@@ -215,7 +214,7 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedAccountId,
-                    decoration: const InputDecoration(labelText: 'Account'),
+                    decoration: const InputDecoration(labelText: 'Account / card'),
                     items: [
                       const DropdownMenuItem(value: '', child: Text('No account')),
                       ...accounts.map(
@@ -283,7 +282,13 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
         _memoController.clear();
         _amountFocusNode.requestFocus();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${preset.label} expense saved')),
+          SnackBar(
+            content: Text('${preset.label} expense saved'),
+            action: SnackBarAction(
+              label: 'Go to app',
+              onPressed: () => context.go('/dashboard'),
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -298,9 +303,10 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
   }
 
   String _normalizePreset(String? source) {
-    if (source == null || source.trim().isEmpty) return 'wallet';
+    if (source == null || source.trim().isEmpty) return 'credit_card';
     final normalized = source.trim().toLowerCase().replaceAll(' ', '_');
-    return _presets.any((item) => item.id == normalized) ? normalized : 'wallet';
+    if (normalized == 'wallet' || normalized == 'paypay') return 'credit_card';
+    return _presets.any((item) => item.id == normalized) ? normalized : 'credit_card';
   }
 
   String _matchAccountForPreset(List<Account> accounts, _QuickAddPreset preset) {

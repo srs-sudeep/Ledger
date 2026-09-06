@@ -4,24 +4,61 @@
     android:layout_height="wrap_content"
     android:background="@drawable/quick_add_widget_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="18dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/quick_add_widget_badge"
+            android:paddingLeft="10dp"
+            android:paddingTop="4dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="4dp"
+            android:text="LEDGER"
+            android:textColor="#2B3A67"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="4 quick ways"
+            android:textColor="#6A7893"
+            android:textSize="11sp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/quick_add_widget_title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
         android:text="Quick Add"
         android:textColor="#131B2E"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Tap a payment source"
-        android:textColor="#515F74"
+        android:gravity="center"
+        android:text="Pick a payment path"
+        android:textColor="#5A6885"
         android:textSize="12sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="#D7E1FA" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,29 +66,73 @@
         android:layout_marginTop="14dp"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/quick_add_wallet"
+        <LinearLayout
+            android:id="@+id/quick_add_credit_card"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/quick_add_widget_chip"
-            android:text="Wallet"
-            android:textAllCaps="false"
-            android:textColor="#131B2E" />
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/quick_add_widget_chip_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingTop="10dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="10dp">
 
-        <Space
-            android:layout_width="10dp"
-            android:layout_height="1dp" />
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/quick_add_widget_icon_card"
+                android:gravity="center"
+                android:text="C"
+                android:textColor="#2B255E"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/quick_add_paypay"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Card"
+                android:textColor="#2B255E"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/quick_add_suica"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/quick_add_widget_chip"
-            android:text="PayPay"
-            android:textAllCaps="false"
-            android:textColor="#131B2E" />
+            android:layout_marginStart="5dp"
+            android:background="@drawable/quick_add_widget_chip_suica"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingTop="10dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/quick_add_widget_icon_suica"
+                android:gravity="center"
+                android:text="S"
+                android:textColor="#113E64"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Suica"
+                android:textColor="#113E64"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -60,38 +141,81 @@
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/quick_add_suica"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/quick_add_widget_chip"
-            android:text="Suica"
-            android:textAllCaps="false"
-            android:textColor="#131B2E" />
-
-        <Space
-            android:layout_width="10dp"
-            android:layout_height="1dp" />
-
-        <Button
+        <LinearLayout
             android:id="@+id/quick_add_paypay_qr"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/quick_add_widget_chip"
-            android:text="PayPay QR"
-            android:textAllCaps="false"
-            android:textColor="#131B2E" />
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/quick_add_widget_chip_qr"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingTop="10dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/quick_add_widget_icon_qr"
+                android:gravity="center"
+                android:text="Q"
+                android:textColor="#6A234D"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="PayPay QR"
+                android:textColor="#6A234D"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/quick_add_cash"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:background="@drawable/quick_add_widget_chip_cash"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingTop="10dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/quick_add_widget_icon_cash"
+                android:gravity="center"
+                android:text="$"
+                android:textColor="#62410F"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Cash"
+                android:textColor="#62410F"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/quick_add_cash"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/quick_add_widget_chip"
-        android:text="Cash"
-        android:textAllCaps="false"
-        android:textColor="#131B2E" />
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="Opens Quick Add in the full app"
+        android:textColor="#6A7893"
+        android:textSize="11sp" />
 </LinearLayout>

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:flutter/services.dart';
 import 'providers/auth_notifier.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -23,6 +25,9 @@ class LedgerApp extends ConsumerStatefulWidget {
 }
 
 class _LedgerAppState extends ConsumerState<LedgerApp> {
+  static const MethodChannel _shortcutsChannel = MethodChannel(
+    'ledger/shortcuts',
+  );
   StreamSubscription<Uri>? _linkSub;
   bool _initializedPlatformHooks = false;
   final QuickActions _quickActions = const QuickActions();
@@ -51,15 +56,21 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
   }
 
   Future<void> _initPlatformHooks(GoRouter router) async {
-    await _quickActions.initialize((shortcutType) {
-      _handleShortcut(router, shortcutType);
-    });
-    await _quickActions.setShortcutItems(const <ShortcutItem>[
-      ShortcutItem(type: 'quick_wallet', localizedTitle: 'Wallet payment'),
-      ShortcutItem(type: 'quick_paypay', localizedTitle: 'PayPay payment'),
-      ShortcutItem(type: 'quick_suica', localizedTitle: 'Suica payment'),
-      ShortcutItem(type: 'quick_cash', localizedTitle: 'Cash payment'),
-    ]);
+    if (Platform.isIOS) {
+      await _quickActions.initialize((shortcutType) {
+        _handleShortcut(router, shortcutType);
+      });
+      await _quickActions.setShortcutItems(const <ShortcutItem>[
+        ShortcutItem(type: 'quick_credit_card', localizedTitle: 'Credit card payment'),
+        ShortcutItem(type: 'quick_suica', localizedTitle: 'Suica payment'),
+        ShortcutItem(type: 'quick_paypay_qr', localizedTitle: 'PayPay QR payment'),
+        ShortcutItem(type: 'quick_cash', localizedTitle: 'Cash payment'),
+      ]);
+    } else if (Platform.isAndroid) {
+      try {
+        await _shortcutsChannel.invokeMethod<void>('syncQuickAddShortcuts');
+      } catch (_) {}
+    }
 
     final appLinks = AppLinks();
     try {
@@ -73,14 +84,16 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
 
   void _handleShortcut(GoRouter router, String shortcutType) {
     const routeByShortcut = <String, String>{
-      'quick_wallet': 'wallet',
-      'quick_paypay': 'paypay',
+      'quick_wallet': 'credit_card',
+      'quick_paypay': 'credit_card',
+      'quick_credit_card': 'credit_card',
       'quick_suica': 'suica',
+      'quick_paypay_qr': 'paypay_qr',
       'quick_cash': 'cash',
     };
     final source = routeByShortcut[shortcutType];
     if (source == null) return;
-    router.go('/quick-add?source=$source');
+    _openQuickAdd(router, source: source);
   }
 
   void _handleIncomingUri(GoRouter router, Uri? uri) {
@@ -92,7 +105,14 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
     final isQuickAdd = segments.contains('quick-add');
     if (!isQuickAdd) return;
     final source = uri.queryParameters['source'];
+    _openQuickAdd(router, source: source);
+  }
+
+  void _openQuickAdd(GoRouter router, {String? source}) {
     final query = source == null || source.isEmpty ? '' : '?source=$source';
-    router.go('/quick-add$query');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      router.go('/quick-add$query');
+    });
   }
 }

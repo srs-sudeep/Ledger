@@ -2,4 +2,12 @@
 <resources>
     <string name="app_name">Ledger</string>
     <string name="quick_add_widget_description">Quick Add</string>
+    <string name="shortcut_credit_card_short">Card</string>
+    <string name="shortcut_credit_card_long">Quick Add credit card payment</string>
+    <string name="shortcut_suica_short">Suica</string>
+    <string name="shortcut_suica_long">Quick Add Suica payment</string>
+    <string name="shortcut_paypay_qr_short">QR</string>
+    <string name="shortcut_paypay_qr_long">Quick Add PayPay QR payment</string>
+    <string name="shortcut_cash_short">Cash</string>
+    <string name="shortcut_cash_long">Quick Add Cash payment</string>
 </resources>
