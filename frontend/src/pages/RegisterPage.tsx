@@ -30,6 +30,10 @@ export function RegisterPage() {
       setError("Password must be at least 6 characters");
       return;
     }
+    if (!fullName.trim()) {
+      setError("Full name is required");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -68,6 +72,7 @@ export function RegisterPage() {
           <Input
             id="name"
             label="Full name"
+            required
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}

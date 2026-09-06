@@ -14,6 +14,7 @@ export function Select({
   label,
   options,
   id,
+  required,
   ...props
 }: SelectProps) {
   return (
@@ -24,6 +25,7 @@ export function Select({
           className="block text-xs font-medium text-on-surface-variant font-label"
         >
           {label}
+          {required ? <span className="ml-1 text-error">*</span> : null}
         </label>
       )}
       <div className="relative">
@@ -36,6 +38,7 @@ export function Select({
             "disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
+          required={required}
           {...props}
         >
           {options.map((opt) => (

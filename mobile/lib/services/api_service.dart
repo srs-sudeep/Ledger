@@ -256,16 +256,20 @@ class ApiService {
     String id, {
     String? title,
     int? amount,
+    String? date,
     String? categoryId,
     String? notes,
     String? accountId,
+    List<Map<String, dynamic>>? splits,
   }) async {
     final body = <String, dynamic>{};
     if (title != null) body['title'] = title;
     if (amount != null) body['amount'] = amount;
-    if (categoryId != null) body['category_id'] = categoryId;
+    if (date != null) body['date'] = date;
+    if (categoryId != null) body['category_id'] = categoryId.isEmpty ? null : categoryId;
     if (notes != null) body['notes'] = notes;
-    if (accountId != null) body['account_id'] = accountId;
+    if (accountId != null) body['account_id'] = accountId.isEmpty ? null : accountId;
+    if (splits != null) body['splits'] = splits;
     await _request('PATCH', '/api/expenses/$id', body: body);
   }
 
@@ -465,6 +469,25 @@ class ApiService {
     });
   }
 
+  static Future<void> updateIncome(
+    String id, {
+    int? amount,
+    String? source,
+    String? date,
+    String? accountId,
+    String? currency,
+    String? notes,
+  }) async {
+    final body = <String, dynamic>{};
+    if (amount != null) body['amount'] = amount;
+    if (source != null) body['source'] = source;
+    if (date != null) body['date'] = date;
+    if (accountId != null) body['account_id'] = accountId.isEmpty ? null : accountId;
+    if (currency != null) body['currency'] = currency;
+    if (notes != null) body['notes'] = notes;
+    await _request('PATCH', '/api/income/$id', body: body);
+  }
+
   // Transfers
   static Future<List<Transfer>> getTransfers(EntryQuery query) async {
     final data = await _request(
@@ -506,6 +529,27 @@ class ApiService {
 
   static Future<void> deleteTransfer(String id) async {
     await _request('DELETE', '/api/transfers/$id');
+  }
+
+  static Future<void> updateTransfer(
+    String id, {
+    int? amount,
+    String? date,
+    String? fromAccountId,
+    String? toAccountId,
+    String? currency,
+    String? kind,
+    String? notes,
+  }) async {
+    final body = <String, dynamic>{};
+    if (amount != null) body['amount'] = amount;
+    if (date != null) body['date'] = date;
+    if (fromAccountId != null) body['from_account_id'] = fromAccountId.isEmpty ? null : fromAccountId;
+    if (toAccountId != null) body['to_account_id'] = toAccountId.isEmpty ? null : toAccountId;
+    if (currency != null) body['currency'] = currency;
+    if (kind != null) body['kind'] = kind;
+    if (notes != null) body['notes'] = notes;
+    await _request('PATCH', '/api/transfers/$id', body: body);
   }
 
   static Future<List<LedgerTransaction>> getTransactions(LedgerQuery query) async {

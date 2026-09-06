@@ -9,6 +9,7 @@ import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brand_logo.dart';
+import '../widgets/page_intro.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -24,11 +25,11 @@ class ProfileScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         children: [
-          Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 4),
-          const Text(
-            'Manage your identity, exports, and workspace preferences.',
-            style: TextStyle(color: AppColors.secondary),
+          const PageIntro(
+            eyebrow: 'Workspace',
+            title: 'Profile',
+            subtitle: 'Manage your identity, exports, and workspace preferences.',
+            icon: Icons.person_rounded,
           ),
           const SizedBox(height: 18),
           Container(
@@ -239,21 +240,24 @@ class ProfileScreen extends ConsumerWidget {
   void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => ListView(
-        shrinkWrap: true,
-        children: [
-          'JPY', 'USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'CHF',
-          'CNY', 'SGD', 'AED', 'NZD', 'SEK', 'NOK', 'MXN', 'BRL', 'ZAR',
-        ].map((c) {
-          return ListTile(
-            title: Text(c),
-            onTap: () async {
-              await ApiService.updateProfile(currency: c);
-              ref.invalidate(profileProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-          );
-        }).toList(),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            'JPY', 'USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'CHF',
+            'CNY', 'SGD', 'AED', 'NZD', 'SEK', 'NOK', 'MXN', 'BRL', 'ZAR',
+          ].map((c) {
+            return ListTile(
+              title: Text(c),
+              onTap: () async {
+                await ApiService.updateProfile(currency: c);
+                ref.invalidate(profileProvider);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -267,11 +271,16 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Edit Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Your name'),
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
+        content: SingleChildScrollView(
+          child: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Name *',
+              hintText: 'Your name',
+            ),
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+          ),
         ),
         actions: [
           TextButton(
@@ -303,13 +312,16 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(isPrimary ? 'Edit Primary Phone' : 'Edit Secondary Phone'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            hintText: isPrimary ? 'Primary phone number' : 'Secondary phone number',
+        content: SingleChildScrollView(
+          child: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: isPrimary ? 'Primary phone' : 'Secondary phone',
+              hintText: isPrimary ? 'Primary phone number' : 'Secondary phone number',
+            ),
+            autofocus: true,
+            keyboardType: TextInputType.phone,
           ),
-          autofocus: true,
-          keyboardType: TextInputType.phone,
         ),
         actions: [
           TextButton(

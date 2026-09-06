@@ -41,10 +41,7 @@ export function Header() {
               <ChevronRight className="h-3.5 w-3.5" />
               <span>{meta.title}</span>
             </div>
-            <div>
-              <h1 className="text-2xl font-headline font-bold text-on-surface">{meta.title}</h1>
-              <p className="text-sm text-secondary">{meta.subtitle}</p>
-            </div>
+            <p className="max-w-xl text-sm text-secondary">{meta.subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">

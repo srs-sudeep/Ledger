@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../currency_format.dart';
+import '../models/models.dart';
 import '../providers/data_providers.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -23,15 +24,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final groupAsync = ref.watch(groupProvider(groupId));
     final expenses = ref.watch(groupExpensesProvider(groupId));
     final members = ref.watch(groupMembersProvider(groupId));
+    final memberList = members.value ?? const <GroupMember>[];
     final userId = ApiService.currentUserId;
 
     return Scaffold(
       appBar: AppBar(
-        title: groupAsync.when(
-          data: (g) => Text(g.name),
-          loading: () => const Text('Group'),
-          error: (_, _) => const Text('Group'),
-        ),
         actions: [
           IconButton(
             onPressed: () => _showInviteDialog(context),
@@ -50,15 +47,16 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Add Expense'),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(groupProvider(groupId));
-          ref.invalidate(groupExpensesProvider(groupId));
-          ref.invalidate(groupMembersProvider(groupId));
-        },
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          children: [
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(groupProvider(groupId));
+            ref.invalidate(groupExpensesProvider(groupId));
+            ref.invalidate(groupMembersProvider(groupId));
+          },
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            children: [
             const SizedBox(height: 16),
             groupAsync.when(
               data: (group) => PageIntro(
@@ -255,6 +253,19 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                               fontSize: 15,
                             ),
                           ),
+                          PopupMenuButton<String>(
+                            onSelected: (value) async {
+                              if (value == 'edit') {
+                                await _showEditGroupExpenseSheet(context, e, memberList);
+                              } else if (value == 'delete') {
+                                await _deleteGroupExpense(context, e);
+                              }
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            ],
+                          ),
                         ],
                       ),
                     );
@@ -271,8 +282,183 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 child: Text('Failed to load expenses'),
               ),
             ),
-            const SizedBox(height: 100),
-          ],
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteGroupExpense(BuildContext context, Expense expense) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete expense?'),
+        content: Text('Remove "${expense.title}" from this group?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ApiService.deleteExpense(expense.id);
+    ref.invalidate(groupExpensesProvider(groupId));
+    ref.invalidate(groupProvider(groupId));
+  }
+
+  Future<void> _showEditGroupExpenseSheet(
+    BuildContext context,
+    Expense expense,
+    List<GroupMember> members,
+  ) {
+    final titleController = TextEditingController(text: expense.title);
+    final amountController = TextEditingController(
+      text: (expense.amount / 100).toStringAsFixed(2),
+    );
+    final notesController = TextEditingController(text: expense.notes ?? '');
+    String categoryId = expense.categoryId ?? '';
+    final categories = ref.read(categoriesProvider).value ?? const <Category>[];
+    final selected = <String, bool>{for (final member in members) member.userId: true};
+
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                18,
+                20,
+                MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                  Text('Edit expense', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Title *'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Amount *',
+                      prefixText: currencyInputPrefix(expense.currency),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: categoryId,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: [
+                      const DropdownMenuItem(value: '', child: Text('Uncategorized')),
+                      ...categories.map(
+                        (category) =>
+                            DropdownMenuItem(value: category.id, child: Text(category.name)),
+                      ),
+                    ],
+                    onChanged: (value) => setSheetState(() => categoryId = value ?? ''),
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Split across *',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: members.map((member) {
+                      final name = member.userId == ApiService.currentUserId
+                          ? 'You'
+                          : (member.profile?.fullName?.trim().isNotEmpty == true
+                              ? member.profile!.fullName!
+                              : member.profile?.email ?? 'Member');
+                      final active = selected[member.userId] ?? false;
+                      return FilterChip(
+                        label: Text(name),
+                        selected: active,
+                        onSelected: (value) => setSheetState(() {
+                          selected[member.userId] = value;
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: notesController,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                    minLines: 2,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final parsed = double.tryParse(amountController.text.trim());
+                        final selectedMembers =
+                            members.where((member) => selected[member.userId] ?? false).toList();
+                        if (titleController.text.trim().isEmpty || parsed == null || parsed <= 0) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Title and amount are required.')),
+                          );
+                          return;
+                        }
+                        if (selectedMembers.isEmpty) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Select at least one member.')),
+                          );
+                          return;
+                        }
+                        final cents = (parsed * 100).round();
+                        final perPerson = cents ~/ selectedMembers.length;
+                        final remainder = cents - perPerson * selectedMembers.length;
+                        final splits = selectedMembers.asMap().entries.map((entry) {
+                          return {
+                            'user_id': entry.value.userId,
+                            'owed_amount': perPerson + (entry.key == 0 ? remainder : 0),
+                            'split_type': 'equal',
+                          };
+                        }).toList();
+                        await ApiService.updateExpense(
+                          expense.id,
+                          title: titleController.text.trim(),
+                          amount: cents,
+                          date: expense.date,
+                          categoryId: categoryId,
+                          notes: notesController.text.trim(),
+                          splits: splits,
+                        );
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        ref.invalidate(groupExpensesProvider(groupId));
+                        ref.invalidate(groupProvider(groupId));
+                      },
+                      child: const Text('Save changes'),
+                    ),
+                  ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -290,35 +476,41 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Text('Invite Member'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Enter the email of a registered user to add them to this group.',
-                style: TextStyle(color: AppColors.secondary, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'friend@example.com',
-                  prefixIcon: Icon(Icons.mail_outline, size: 20),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Enter the email of a registered user to add them to this group.',
+                  style: TextStyle(color: AppColors.secondary, fontSize: 13),
                 ),
-              ),
-              if (error != null) ...[
-                const SizedBox(height: 8),
-                Text(error!,
-                    style: const TextStyle(color: Colors.red, fontSize: 12)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Email *',
+                    hintText: 'friend@example.com',
+                    prefixIcon: Icon(Icons.mail_outline, size: 20),
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ],
+                if (success != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    success!,
+                    style: const TextStyle(color: Colors.green, fontSize: 12),
+                  ),
+                ],
               ],
-              if (success != null) ...[
-                const SizedBox(height: 8),
-                Text(success!,
-                    style:
-                        const TextStyle(color: Colors.green, fontSize: 12)),
-              ],
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -330,7 +522,12 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ? null
                   : () async {
                       final email = emailController.text.trim();
-                      if (email.isEmpty) return;
+                      if (email.isEmpty || !email.contains('@')) {
+                        setDialogState(() {
+                          error = 'Enter a valid email address.';
+                        });
+                        return;
+                      }
                       setDialogState(() {
                         loading = true;
                         error = null;
@@ -388,15 +585,18 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Center(
               child: Container(
                 width: 40,
@@ -485,8 +685,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                 );
               }),
-            const SizedBox(height: 16),
-          ],
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
         ),
       ),
     );

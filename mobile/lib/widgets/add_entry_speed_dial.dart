@@ -25,6 +25,15 @@ class _AddEntrySpeedDialState extends State<AddEntrySpeedDial> {
       children: [
         if (_open) ...[
           _ActionPill(
+            icon: Icons.bolt_rounded,
+            label: 'Quick Add',
+            onTap: () {
+              _close();
+              context.push('/quick-add');
+            },
+          ),
+          const SizedBox(height: 10),
+          _ActionPill(
             icon: Icons.swap_horiz_rounded,
             label: 'Transfer',
             onTap: () {

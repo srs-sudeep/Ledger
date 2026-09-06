@@ -34,22 +34,27 @@ class _IncomeListScreenState extends ConsumerState<IncomeListScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(incomeProvider(_query));
-          ref.invalidate(incomeCountProvider(_query));
-          ref.invalidate(accountsProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          children: [
-            PageIntro(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(incomeProvider(_query));
+            ref.invalidate(incomeCountProvider(_query));
+            ref.invalidate(accountsProvider);
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            children: [
+              PageIntro(
               eyebrow: 'Cash in',
               title: 'Income',
               subtitle: 'Track incoming money by source, notes, account, and date.',
               icon: Icons.trending_up_rounded,
               trailing: IconButton(
-                onPressed: () => _showAddIncomeSheet(context, ref),
+                onPressed: () async {
+                  await _showAddIncomeSheet(context, ref);
+                  ref.invalidate(incomeProvider(_query));
+                  ref.invalidate(incomeCountProvider(_query));
+                },
                 icon: const Icon(Icons.add),
               ),
             ),
@@ -94,6 +99,11 @@ class _IncomeListScreenState extends ConsumerState<IncomeListScreen> {
             LedgerTable<Income>(
               columns: incomeTableColumns(
                 accountNames: {for (final account in accounts) account.id: account.name},
+                onEdit: (income) async {
+                  await _showAddIncomeSheet(context, ref, initialIncome: income);
+                  ref.invalidate(incomeProvider(_query));
+                  ref.invalidate(incomeCountProvider(_query));
+                },
                 onDelete: (income) async {
                   await ApiService.deleteIncome(income.id);
                   ref.invalidate(incomeProvider(_query));
@@ -114,19 +124,29 @@ class _IncomeListScreenState extends ConsumerState<IncomeListScreen> {
               onPageChange: (page) => setState(() => _query = _query.copyWith(page: page)),
               onPageSizeChange: (size) =>
                   setState(() => _query = _query.copyWith(pageSize: size, page: 1)),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-Future<void> _showAddIncomeSheet(BuildContext context, WidgetRef ref) {
-  final sourceController = TextEditingController();
-  final amountController = TextEditingController();
-  final notesController = TextEditingController();
-  String accountId = '';
+Future<void> _showAddIncomeSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  Income? initialIncome,
+}) {
+  final editing = initialIncome != null;
+  final sourceController = TextEditingController(text: initialIncome?.source ?? '');
+  final amountController =
+      TextEditingController(text: initialIncome == null ? '' : (initialIncome.amount / 100).toStringAsFixed(2));
+  final notesController = TextEditingController(text: initialIncome?.notes ?? '');
+  final dateController = TextEditingController(
+    text: initialIncome?.date ?? DateTime.now().toIso8601String().split('T').first,
+  );
+  String accountId = initialIncome?.accountId ?? '';
   final accounts = ref.read(accountsProvider).value ?? const <Account>[];
   final currency = ref.read(profileProvider).value?.defaultCurrency ?? kDefaultCurrency;
 
@@ -140,75 +160,105 @@ Future<void> _showAddIncomeSheet(BuildContext context, WidgetRef ref) {
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            18,
-            20,
-            MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add income', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: sourceController,
-                  decoration: const InputDecoration(labelText: 'Source'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(labelText: 'Amount', prefixText: currencyInputPrefix(currency)),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: accountId,
-                  decoration: const InputDecoration(labelText: 'Account'),
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('Unassigned')),
-                    ...accounts.map(
-                      (account) => DropdownMenuItem(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) => setSheetState(() => accountId = value ?? ''),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: notesController,
-                  decoration: const InputDecoration(labelText: 'Notes'),
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final parsed = double.tryParse(amountController.text.trim());
-                      if (parsed == null || parsed <= 0 || sourceController.text.trim().isEmpty) {
-                        return;
-                      }
-                      await ApiService.addIncome(
-                        amount: (parsed * 100).round(),
-                        source: sourceController.text.trim(),
-                        date: DateTime.now().toIso8601String().split('T').first,
-                        accountId: accountId.isEmpty ? null : accountId,
-                        currency: currency,
-                        notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                      );
-                      ref.invalidate(accountsProvider);
-                      ref.invalidate(recentIncomeProvider);
-                      ref.invalidate(dashboardSummaryProvider);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    },
-                    child: const Text('Save income'),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              18,
+              20,
+              MediaQuery.of(ctx).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(editing ? 'Edit income' : 'Add income',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: sourceController,
+                    decoration: const InputDecoration(labelText: 'Source *'),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Amount *',
+                      prefixText: currencyInputPrefix(currency),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: accountId,
+                    decoration: const InputDecoration(labelText: 'Account'),
+                    items: [
+                      const DropdownMenuItem(value: '', child: Text('Unassigned')),
+                      ...accounts.map(
+                        (account) => DropdownMenuItem(
+                          value: account.id,
+                          child: Text(account.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setSheetState(() => accountId = value ?? ''),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: dateController,
+                    decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: notesController,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final parsed = double.tryParse(amountController.text.trim());
+                        if (parsed == null || parsed <= 0 || sourceController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Source and amount are required.')),
+                          );
+                          return;
+                        }
+                        if (editing) {
+                          await ApiService.updateIncome(
+                            initialIncome.id,
+                            amount: (parsed * 100).round(),
+                            source: sourceController.text.trim(),
+                            date: dateController.text.trim(),
+                            accountId: accountId,
+                            currency: currency,
+                            notes: notesController.text.trim(),
+                          );
+                        } else {
+                          await ApiService.addIncome(
+                            amount: (parsed * 100).round(),
+                            source: sourceController.text.trim(),
+                            date: dateController.text.trim(),
+                            accountId: accountId.isEmpty ? null : accountId,
+                            currency: currency,
+                            notes: notesController.text.trim().isEmpty
+                                ? null
+                                : notesController.text.trim(),
+                          );
+                        }
+                        ref.invalidate(accountsProvider);
+                        ref.invalidate(recentIncomeProvider);
+                        ref.invalidate(incomeProvider(const EntryQuery(pageSize: 25)));
+                        ref.invalidate(dashboardSummaryProvider);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(editing ? 'Save changes' : 'Save income'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

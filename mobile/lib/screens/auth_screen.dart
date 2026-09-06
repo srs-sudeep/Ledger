@@ -15,6 +15,8 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  static final RegExp _emailPattern =
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
   bool _isLogin = true;
   bool _loading = false;
   bool _obscurePassword = true;
@@ -40,6 +42,23 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final name = _nameController.text.trim();
+
+    if (!_emailPattern.hasMatch(email)) {
+      setState(() => _error = 'Enter a valid email address.');
+      return;
+    }
+    if (password.isEmpty) {
+      setState(() => _error = 'Password is required.');
+      return;
+    }
+    if (!_isLogin && name.isEmpty) {
+      setState(() => _error = 'Full name is required.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -57,14 +76,14 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (_isLogin) {
         await ApiService.signIn(
-          _emailController.text.trim(),
-          _passwordController.text,
+          email,
+          password,
         );
       } else {
         await ApiService.signUp(
-          _emailController.text.trim(),
-          _passwordController.text,
-          _nameController.text.trim(),
+          email,
+          password,
+          name,
           phonePrimary: _phonePrimaryController.text.trim().isEmpty
               ? null
               : _phonePrimaryController.text.trim(),
@@ -107,10 +126,17 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+            padding: EdgeInsets.fromLTRB(
+              24,
+              24,
+              24,
+              MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 const BrandLogo(size: 72),
                 const SizedBox(height: 24),
                 Text(
@@ -145,7 +171,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 if (!_isLogin) ...[
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Full Name'),
+                    decoration: const InputDecoration(labelText: 'Full Name *'),
                     textCapitalization: TextCapitalization.words,
                   ),
                   const SizedBox(height: 16),
@@ -165,7 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 TextField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(labelText: 'Email *'),
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                 ),
@@ -174,7 +200,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Password *',
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -191,7 +217,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   TextField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
-                      labelText: 'Confirm password',
+                      labelText: 'Confirm password *',
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirm ? Icons.visibility_off : Icons.visibility,
@@ -278,7 +304,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

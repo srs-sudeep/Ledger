@@ -65,7 +65,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
   Future<void> _save() async {
     final parsed = double.tryParse(_amount);
-    if (parsed == null || parsed <= 0 || _titleController.text.trim().isEmpty) return;
+    if (parsed == null || parsed <= 0 || _titleController.text.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Amount and title are required.')),
+        );
+      }
+      return;
+    }
 
     setState(() => _loading = true);
 
@@ -140,15 +147,20 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Add Expense'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: PageIntro(
@@ -249,6 +261,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 controller: _titleController,
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
+                  labelText: 'Title *',
                   hintText: 'What was it for?',
                   hintStyle: const TextStyle(color: AppColors.outline),
                   border: OutlineInputBorder(
@@ -328,7 +341,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 error: (e, _) => const SizedBox(),
               ),
 
-            const Spacer(),
+                    const Spacer(),
 
             // Numpad
             Padding(
@@ -369,7 +382,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               ),
             ),
             const SizedBox(height: 16),
-          ],
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

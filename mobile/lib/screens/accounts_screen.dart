@@ -206,13 +206,16 @@ class AccountsScreen extends ConsumerWidget {
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(hintText: 'Account name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Account name *',
+                    hintText: 'Main bank account',
+                  ),
                   autofocus: true,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedType,
-                  decoration: const InputDecoration(hintText: 'Type'),
+                  decoration: const InputDecoration(labelText: 'Type *'),
                   items: _accountTypes
                       .map((row) => DropdownMenuItem(value: row.$1, child: Text(row.$2)))
                       .toList(),
@@ -225,6 +228,7 @@ class AccountsScreen extends ConsumerWidget {
                   controller: balanceController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
+                    labelText: 'Opening balance',
                     hintText: 'Opening balance',
                     prefixText: currencyInputPrefix(selectedCurrency),
                   ),
@@ -232,7 +236,7 @@ class AccountsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedCurrency,
-                  decoration: const InputDecoration(hintText: 'Currency'),
+                  decoration: const InputDecoration(labelText: 'Currency *'),
                   items: _currencies
                       .map((currency) => DropdownMenuItem(value: currency, child: Text(currency)))
                       .toList(),
@@ -253,7 +257,12 @@ class AccountsScreen extends ConsumerWidget {
             ElevatedButton(
               onPressed: () async {
                 final name = nameController.text.trim();
-                if (name.isEmpty) return;
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(content: Text('Account name is required.')),
+                  );
+                  return;
+                }
                 final parsed = double.tryParse(balanceController.text.trim()) ?? 0;
                 await ApiService.addAccount(
                   name: name,

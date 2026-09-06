@@ -13,6 +13,7 @@ import 'screens/groups_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/income_list_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/quick_add_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/transfers_list_screen.dart';
@@ -109,6 +110,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/help',
         builder: (context, state) => const HelpScreen(),
+      ),
+      GoRoute(
+        path: '/quick-add',
+        pageBuilder: (context, state) => MaterialPage(
+          fullscreenDialog: true,
+          child: QuickAddScreen(
+            initialSource: state.uri.queryParameters['source'],
+          ),
+        ),
       ),
     ],
   );

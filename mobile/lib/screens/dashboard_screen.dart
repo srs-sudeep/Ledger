@@ -187,7 +187,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     rowKey: (row) => '${row.txType}-${row.id}',
                     empty: 'No activity yet',
                     showFooter: false,
-                    onRowTap: (row) => showTxDetailSheet(context, row),
+                    onRowTap: (row) => showTxDetailSheet(context, ref, row),
                   );
                 },
                 loading: () => const Padding(

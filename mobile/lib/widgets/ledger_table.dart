@@ -454,6 +454,7 @@ List<LedgerTableColumn<LedgerTransaction>> ledgerTransactionColumns() {
 
 List<LedgerTableColumn<Income>> incomeTableColumns({
   required Map<String, String> accountNames,
+  Future<void> Function(Income income)? onEdit,
   Future<void> Function(Income income)? onDelete,
 }) {
   return [
@@ -501,16 +502,28 @@ List<LedgerTableColumn<Income>> incomeTableColumns({
         alwaysPositive: true,
       ),
     ),
-    if (onDelete != null)
+    if (onEdit != null || onDelete != null)
       LedgerTableColumn(
         key: 'actions',
         header: '',
-        width: 56,
+        width: onEdit != null && onDelete != null ? 96 : 56,
         alignment: Alignment.centerRight,
-        cell: (row) => IconButton(
-          visualDensity: VisualDensity.compact,
-          onPressed: () => onDelete(row),
-          icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.secondary),
+        cell: (row) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onEdit != null)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => onEdit(row),
+                icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.secondary),
+              ),
+            if (onDelete != null)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => onDelete(row),
+                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.secondary),
+              ),
+          ],
         ),
       ),
   ];
@@ -518,6 +531,7 @@ List<LedgerTableColumn<Income>> incomeTableColumns({
 
 List<LedgerTableColumn<Transfer>> transferTableColumns({
   required Map<String, String> accountNames,
+  Future<void> Function(Transfer transfer)? onEdit,
   Future<void> Function(Transfer transfer)? onDelete,
 }) {
   return [
@@ -571,16 +585,28 @@ List<LedgerTableColumn<Transfer>> transferTableColumns({
         ),
       ),
     ),
-    if (onDelete != null)
+    if (onEdit != null || onDelete != null)
       LedgerTableColumn(
         key: 'actions',
         header: '',
-        width: 56,
+        width: onEdit != null && onDelete != null ? 96 : 56,
         alignment: Alignment.centerRight,
-        cell: (row) => IconButton(
-          visualDensity: VisualDensity.compact,
-          onPressed: () => onDelete(row),
-          icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.secondary),
+        cell: (row) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onEdit != null)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => onEdit(row),
+                icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.secondary),
+              ),
+            if (onDelete != null)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => onDelete(row),
+                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.secondary),
+              ),
+          ],
         ),
       ),
   ];

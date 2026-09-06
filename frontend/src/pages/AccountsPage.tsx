@@ -13,7 +13,7 @@ import { SummaryCard } from "@/components/finance/SummaryCard";
 import { ModalShell } from "@/components/finance/ModalShell";
 import type { Account, Income, Transfer } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowRightLeft, Landmark, Plus, Trash2, Wallet } from "lucide-react";
+import { ArrowRightLeft, Landmark, Pencil, Plus, Trash2, Wallet } from "lucide-react";
 
 const ACCOUNT_COLORS = ["#0053db", "#3f72ff", "#7a5cff", "#00a76f", "#f97316", "#ef4444"];
 
@@ -31,6 +31,9 @@ export function AccountsPage() {
   const [incomeSourceInput, setIncomeSourceInput] = useState("");
   const [incomeAmountInput, setIncomeAmountInput] = useState("");
   const [incomeAccountInput, setIncomeAccountInput] = useState("");
+  const [incomeDateInput, setIncomeDateInput] = useState(new Date().toISOString().split("T")[0]);
+  const [incomeNotesInput, setIncomeNotesInput] = useState("");
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [incomeSearch, setIncomeSearch] = useState("");
   const [incomeFilterAccount, setIncomeFilterAccount] = useState("");
   const [incomeFromDate, setIncomeFromDate] = useState("");
@@ -43,8 +46,10 @@ export function AccountsPage() {
   const [transferAmountInput, setTransferAmountInput] = useState("");
   const [transferFromInput, setTransferFromInput] = useState("");
   const [transferToInput, setTransferToInput] = useState("");
+  const [transferDateInput, setTransferDateInput] = useState(new Date().toISOString().split("T")[0]);
   const [transferKindInput, setTransferKindInput] = useState("");
   const [transferNotesInput, setTransferNotesInput] = useState("");
+  const [editingTransfer, setEditingTransfer] = useState<Transfer | null>(null);
   const [transferSearch, setTransferSearch] = useState("");
   const [transferFilterAccount, setTransferFilterAccount] = useState("");
   const [transferFromDate, setTransferFromDate] = useState("");
@@ -159,6 +164,25 @@ export function AccountsPage() {
     await load();
   };
 
+  const resetIncomeForm = () => {
+    setIncomeSourceInput("");
+    setIncomeAmountInput("");
+    setIncomeAccountInput("");
+    setIncomeDateInput(new Date().toISOString().split("T")[0]);
+    setIncomeNotesInput("");
+    setEditingIncome(null);
+  };
+
+  const resetTransferForm = () => {
+    setTransferAmountInput("");
+    setTransferFromInput("");
+    setTransferToInput("");
+    setTransferDateInput(new Date().toISOString().split("T")[0]);
+    setTransferKindInput("");
+    setTransferNotesInput("");
+    setEditingTransfer(null);
+  };
+
   const addIncome = async () => {
     const cents = Math.round(parseFloat(incomeAmountInput || "0") * 100);
     if (!incomeSourceInput.trim() || !cents) {
@@ -166,19 +190,18 @@ export function AccountsPage() {
       return;
     }
     setError("");
-    await api("/api/income", {
-      method: "POST",
+    await api(`/api/income${editingIncome ? `/${editingIncome.id}` : ""}`, {
+      method: editingIncome ? "PATCH" : "POST",
       body: JSON.stringify({
         source: incomeSourceInput,
         amount: cents,
         currency,
         account_id: incomeAccountInput || null,
-        date: new Date().toISOString().split("T")[0],
+        date: incomeDateInput,
+        notes: incomeNotesInput || null,
       }),
     });
-    setIncomeSourceInput("");
-    setIncomeAmountInput("");
-    setIncomeAccountInput("");
+    resetIncomeForm();
     setIncomeModalOpen(false);
     await load();
   };
@@ -194,8 +217,8 @@ export function AccountsPage() {
       return;
     }
     setError("");
-    await api("/api/transfers", {
-      method: "POST",
+    await api(`/api/transfers${editingTransfer ? `/${editingTransfer.id}` : ""}`, {
+      method: editingTransfer ? "PATCH" : "POST",
       body: JSON.stringify({
         amount: cents,
         currency,
@@ -203,16 +226,33 @@ export function AccountsPage() {
         to_account_id: transferToInput || null,
         kind: transferKindInput || null,
         notes: transferNotesInput || null,
-        date: new Date().toISOString().split("T")[0],
+        date: transferDateInput,
       }),
     });
-    setTransferAmountInput("");
-    setTransferFromInput("");
-    setTransferToInput("");
-    setTransferKindInput("");
-    setTransferNotesInput("");
+    resetTransferForm();
     setTransferModalOpen(false);
     await load();
+  };
+
+  const startIncomeEdit = (row: Income) => {
+    setEditingIncome(row);
+    setIncomeSourceInput(row.source);
+    setIncomeAmountInput((row.amount / 100).toFixed(2));
+    setIncomeAccountInput(row.account_id ?? "");
+    setIncomeDateInput(row.date);
+    setIncomeNotesInput(row.notes ?? "");
+    setIncomeModalOpen(true);
+  };
+
+  const startTransferEdit = (row: Transfer) => {
+    setEditingTransfer(row);
+    setTransferAmountInput((row.amount / 100).toFixed(2));
+    setTransferFromInput(row.from_account_id ?? "");
+    setTransferToInput(row.to_account_id ?? "");
+    setTransferDateInput(row.date);
+    setTransferKindInput(row.kind ?? "");
+    setTransferNotesInput(row.notes ?? "");
+    setTransferModalOpen(true);
   };
 
   const deleteIncome = async (id: string) => {
@@ -288,17 +328,30 @@ export function AccountsPage() {
       align: "right",
       width: "56px",
       render: (row) => (
-        <button
-          type="button"
-          aria-label="Delete income"
-          onClick={(event) => {
-            event.stopPropagation();
-            deleteIncome(row.id);
-          }}
-          className="text-secondary hover:text-error"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            aria-label="Edit income"
+            onClick={(event) => {
+              event.stopPropagation();
+              startIncomeEdit(row);
+            }}
+            className="text-secondary hover:text-on-surface"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            type="button"
+            aria-label="Delete income"
+            onClick={(event) => {
+              event.stopPropagation();
+              deleteIncome(row.id);
+            }}
+            className="text-secondary hover:text-error"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       ),
     },
   ];
@@ -357,17 +410,30 @@ export function AccountsPage() {
       align: "right",
       width: "56px",
       render: (row) => (
-        <button
-          type="button"
-          aria-label="Delete transfer"
-          onClick={(event) => {
-            event.stopPropagation();
-            deleteTransfer(row.id);
-          }}
-          className="text-secondary hover:text-error"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            aria-label="Edit transfer"
+            onClick={(event) => {
+              event.stopPropagation();
+              startTransferEdit(row);
+            }}
+            className="text-secondary hover:text-on-surface"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            type="button"
+            aria-label="Delete transfer"
+            onClick={(event) => {
+              event.stopPropagation();
+              deleteTransfer(row.id);
+            }}
+            className="text-secondary hover:text-error"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       ),
     },
   ];
@@ -711,6 +777,7 @@ export function AccountsPage() {
           <Input
             id="account-name"
             label="Account name"
+            required
             value={accountNameInput}
             onChange={(e) => setAccountNameInput(e.target.value)}
           />
@@ -756,20 +823,25 @@ export function AccountsPage() {
 
       <ModalShell
         open={incomeModalOpen}
-        onClose={() => setIncomeModalOpen(false)}
-        title="Add income"
+        onClose={() => {
+          setIncomeModalOpen(false);
+          resetIncomeForm();
+        }}
+        title={editingIncome ? "Edit income" : "Add income"}
         description="Log income without keeping a large form open on the page."
       >
         <div className="grid md:grid-cols-3 gap-3">
           <Input
             id="income-source"
             label="Source"
+            required
             value={incomeSourceInput}
             onChange={(e) => setIncomeSourceInput(e.target.value)}
           />
           <Input
             id="income-amount"
             label="Amount"
+            required
             type="number"
             step="0.01"
             value={incomeAmountInput}
@@ -785,22 +857,42 @@ export function AccountsPage() {
               ...accounts.map((a) => ({ value: a.id, label: a.name })),
             ]}
           />
+          <Input
+            id="income-date"
+            label="Date"
+            required
+            type="date"
+            value={incomeDateInput}
+            onChange={(e) => setIncomeDateInput(e.target.value)}
+          />
+          <div className="md:col-span-3">
+            <Input
+              id="income-notes"
+              label="Notes"
+              value={incomeNotesInput}
+              onChange={(e) => setIncomeNotesInput(e.target.value)}
+            />
+          </div>
         </div>
         <div className="mt-5 flex justify-end">
-          <Button onClick={addIncome}>Save income</Button>
+          <Button onClick={addIncome}>{editingIncome ? "Save changes" : "Save income"}</Button>
         </div>
       </ModalShell>
 
       <ModalShell
         open={transferModalOpen}
-        onClose={() => setTransferModalOpen(false)}
-        title="Add transfer"
+        onClose={() => {
+          setTransferModalOpen(false);
+          resetTransferForm();
+        }}
+        title={editingTransfer ? "Edit transfer" : "Add transfer"}
         description="Move money between accounts without keeping a permanent form on the page."
       >
         <div className="grid md:grid-cols-2 gap-3">
           <Input
             id="transfer-amount"
             label="Amount"
+            required
             type="number"
             step="0.01"
             value={transferAmountInput}
@@ -812,6 +904,14 @@ export function AccountsPage() {
             value={transferKindInput}
             onChange={(e) => setTransferKindInput(e.target.value)}
             placeholder="Top-up, cash withdrawal, card payment"
+          />
+          <Input
+            id="transfer-date"
+            label="Date"
+            required
+            type="date"
+            value={transferDateInput}
+            onChange={(e) => setTransferDateInput(e.target.value)}
           />
           <Select
             id="transfer-from"
@@ -843,7 +943,7 @@ export function AccountsPage() {
           </div>
         </div>
         <div className="mt-5 flex justify-end">
-          <Button onClick={addTransfer}>Save transfer</Button>
+          <Button onClick={addTransfer}>{editingTransfer ? "Save changes" : "Save transfer"}</Button>
         </div>
       </ModalShell>
     </div>

@@ -12,9 +12,8 @@ class HelpScreen extends StatelessWidget {
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
           children: [
-            const SizedBox(height: 24),
             const PageIntro(
               eyebrow: 'About',
               title: 'Help & info',

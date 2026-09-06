@@ -41,6 +41,7 @@ class GroupsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             groups.when(
               data: (list) {
+                final totalGroups = list.length;
                 if (list.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(40),
@@ -74,12 +75,34 @@ class GroupsScreen extends ConsumerWidget {
                 }
 
                 return Column(
-                  children: list.map((item) {
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _GroupStatCard(
+                            label: 'Active groups',
+                            value: '$totalGroups',
+                            icon: Icons.groups_rounded,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _GroupStatCard(
+                            label: 'Base currency',
+                            value: (list.first['groups'] as Map<String, dynamic>?)?['currency']?.toString() ?? kDefaultCurrency,
+                            icon: Icons.currency_exchange_rounded,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ...list.map((item) {
                     final groupData =
                         item['groups'] as Map<String, dynamic>?;
                     if (groupData == null) return const SizedBox();
                     final memberCount = _memberCountFromGroupJson(groupData);
                     final group = Group.fromJson(groupData);
+                    final role = (item['role'] as String? ?? 'member').toUpperCase();
 
                     return GestureDetector(
                       onTap: () => context.push('/groups/${group.id}'),
@@ -87,8 +110,22 @@ class GroupsScreen extends ConsumerWidget {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xF2F2F3FF), Color(0xFFFFFFFF)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.16),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.onSurface.withValues(alpha: 0.05),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
                         child: Row(
                           children: [
@@ -115,6 +152,23 @@ class GroupsScreen extends ConsumerWidget {
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.82),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      role,
+                                      style: const TextStyle(
+                                        color: AppColors.secondary,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
                                   Text(
                                     group.name,
                                     style: const TextStyle(
@@ -143,7 +197,8 @@ class GroupsScreen extends ConsumerWidget {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
+                  ],
                 );
               },
               loading: () => const Center(
@@ -192,30 +247,34 @@ class GroupsScreen extends ConsumerWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Text('Create Group'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration:
-                    const InputDecoration(hintText: 'Group name'),
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: selectedType,
-                decoration: const InputDecoration(hintText: 'Type'),
-                items: const [
-                  DropdownMenuItem(value: 'custom', child: Text('Custom')),
-                  DropdownMenuItem(value: 'trip', child: Text('Trip')),
-                  DropdownMenuItem(value: 'home', child: Text('Home / Apartment')),
-                ],
-                onChanged: (v) {
-                  if (v != null) setDialogState(() => selectedType = v);
-                },
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Group name *',
+                    hintText: 'Weekend trip',
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedType,
+                  decoration: const InputDecoration(labelText: 'Type *'),
+                  items: const [
+                    DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                    DropdownMenuItem(value: 'trip', child: Text('Trip')),
+                    DropdownMenuItem(value: 'home', child: Text('Home / Apartment')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setDialogState(() => selectedType = v);
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -227,7 +286,12 @@ class GroupsScreen extends ConsumerWidget {
                   ? null
                   : () async {
                       final name = nameController.text.trim();
-                      if (name.isEmpty) return;
+                      if (name.isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Group name is required.')),
+                        );
+                        return;
+                      }
                       setDialogState(() => loading = true);
                       try {
                         final profile =
@@ -266,6 +330,66 @@ class GroupsScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GroupStatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _GroupStatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.primaryContainer),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

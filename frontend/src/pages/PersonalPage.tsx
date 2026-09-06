@@ -105,8 +105,8 @@ export function PersonalPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-headline font-bold">Personal expenses</h1>
       <Card className="p-4 grid md:grid-cols-5 gap-2">
-        <Input id="title" label="Description" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <Input id="amt" label={`Amount (${currency})`} type="number" step={currency === "JPY" ? "1" : "0.01"} value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <Input id="title" label="Description" required value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input id="amt" label={`Amount (${currency})`} required type="number" step={currency === "JPY" ? "1" : "0.01"} value={amount} onChange={(e) => setAmount(e.target.value)} />
         <Select id="cat" label="Category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} options={[{ value: "", label: "—" }, ...categories.map((c) => ({ value: c.id, label: c.name }))]} />
         <Select id="acc" label="Account" value={accountId} onChange={(e) => setAccountId(e.target.value)} options={[{ value: "", label: "—" }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]} />
         <div className="flex gap-2 self-end">

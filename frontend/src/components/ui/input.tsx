@@ -7,7 +7,7 @@ export interface InputProps
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, id, ...props }, ref) => {
+  ({ className, type, label, id, required, ...props }, ref) => {
     return (
       <div className="space-y-1.5">
         {label && (
@@ -16,6 +16,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className="block text-xs font-medium text-on-surface-variant font-label"
           >
             {label}
+            {required ? <span className="ml-1 text-error">*</span> : null}
           </label>
         )}
         <input
@@ -29,6 +30,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className
           )}
           ref={ref}
+          required={required}
           {...props}
         />
       </div>

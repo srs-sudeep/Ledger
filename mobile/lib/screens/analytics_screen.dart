@@ -26,24 +26,25 @@ class AnalyticsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(analyticsProvider);
-          ref.invalidate(accountsProvider);
-          ref.invalidate(transactionSummaryProvider(const LedgerQuery(pageSize: 25)));
-          ref.invalidate(transactionsProvider(const LedgerQuery(pageSize: 500)));
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          children: [
-            const PageIntro(
-              eyebrow: 'Breakdowns',
-              title: 'Analytics',
-              subtitle: 'See what is driving personal spend, shared costs, account usage, and transfer flow.',
-              icon: Icons.insights_rounded,
-            ),
-            const SizedBox(height: 18),
-            ledgerSummary.when(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(analyticsProvider);
+            ref.invalidate(accountsProvider);
+            ref.invalidate(transactionSummaryProvider(const LedgerQuery(pageSize: 25)));
+            ref.invalidate(transactionsProvider(const LedgerQuery(pageSize: 500)));
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            children: [
+              const PageIntro(
+                eyebrow: 'Breakdowns',
+                title: 'Analytics',
+                subtitle: 'See what is driving personal spend, shared costs, account usage, and transfer flow.',
+                icon: Icons.insights_rounded,
+              ),
+              const SizedBox(height: 18),
+              ledgerSummary.when(
               data: (summary) => Column(
                 children: [
                   SummaryMetric(
@@ -289,8 +290,9 @@ class AnalyticsScreen extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (e, _) => Text('$e'),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

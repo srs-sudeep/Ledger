@@ -302,7 +302,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     _query = _query.copyWith(pageSize: size, page: 1);
                     _load();
                   },
-                  onRowTap: (tx) => showTxDetailSheet(context, tx),
+                  onRowTap: (tx) => showTxDetailSheet(context, ref, tx, onChanged: _load),
                 ),
             ],
           ),

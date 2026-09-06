@@ -35,22 +35,27 @@ class _TransfersListScreenState extends ConsumerState<TransfersListScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(transferProvider(_query));
-          ref.invalidate(transferCountProvider(_query));
-          ref.invalidate(accountsProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          children: [
-            PageIntro(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(transferProvider(_query));
+            ref.invalidate(transferCountProvider(_query));
+            ref.invalidate(accountsProvider);
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            children: [
+              PageIntro(
               eyebrow: 'Money movement',
               title: 'Transfers',
               subtitle: 'Follow money moving between your accounts with searchable history.',
               icon: Icons.swap_horiz_rounded,
               trailing: IconButton(
-                onPressed: () => _showAddTransferSheet(context, ref),
+                onPressed: () async {
+                  await _showAddTransferSheet(context, ref);
+                  ref.invalidate(transferProvider(_query));
+                  ref.invalidate(transferCountProvider(_query));
+                },
                 icon: const Icon(Icons.add),
               ),
             ),
@@ -95,6 +100,11 @@ class _TransfersListScreenState extends ConsumerState<TransfersListScreen> {
             LedgerTable<Transfer>(
               columns: transferTableColumns(
                 accountNames: accountNames,
+                onEdit: (transfer) async {
+                  await _showAddTransferSheet(context, ref, initialTransfer: transfer);
+                  ref.invalidate(transferProvider(_query));
+                  ref.invalidate(transferCountProvider(_query));
+                },
                 onDelete: (transfer) async {
                   await ApiService.deleteTransfer(transfer.id);
                   ref.invalidate(transferProvider(_query));
@@ -115,20 +125,31 @@ class _TransfersListScreenState extends ConsumerState<TransfersListScreen> {
               onPageChange: (page) => setState(() => _query = _query.copyWith(page: page)),
               onPageSizeChange: (size) =>
                   setState(() => _query = _query.copyWith(pageSize: size, page: 1)),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-Future<void> _showAddTransferSheet(BuildContext context, WidgetRef ref) {
-  final amountController = TextEditingController();
-  final kindController = TextEditingController();
-  final notesController = TextEditingController();
-  String fromAccountId = '';
-  String toAccountId = '';
+Future<void> _showAddTransferSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  Transfer? initialTransfer,
+}) {
+  final editing = initialTransfer != null;
+  final amountController = TextEditingController(
+    text: initialTransfer == null ? '' : (initialTransfer.amount / 100).toStringAsFixed(2),
+  );
+  final kindController = TextEditingController(text: initialTransfer?.kind ?? '');
+  final notesController = TextEditingController(text: initialTransfer?.notes ?? '');
+  final dateController = TextEditingController(
+    text: initialTransfer?.date ?? DateTime.now().toIso8601String().split('T').first,
+  );
+  String fromAccountId = initialTransfer?.fromAccountId ?? '';
+  String toAccountId = initialTransfer?.toAccountId ?? '';
   final accounts = ref.read(accountsProvider).value ?? const <Account>[];
   final currency = ref.read(profileProvider).value?.defaultCurrency ?? kDefaultCurrency;
 
@@ -142,89 +163,135 @@ Future<void> _showAddTransferSheet(BuildContext context, WidgetRef ref) {
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            18,
-            20,
-            MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add transfer', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(labelText: 'Amount', prefixText: currencyInputPrefix(currency)),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: fromAccountId,
-                  decoration: const InputDecoration(labelText: 'From'),
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('External')),
-                    ...accounts.map(
-                      (account) => DropdownMenuItem(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              18,
+              20,
+              MediaQuery.of(ctx).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(editing ? 'Edit transfer' : 'Add transfer',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Amount *',
+                      prefixText: currencyInputPrefix(currency),
                     ),
-                  ],
-                  onChanged: (value) => setSheetState(() => fromAccountId = value ?? ''),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: toAccountId,
-                  decoration: const InputDecoration(labelText: 'To'),
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('External')),
-                    ...accounts.map(
-                      (account) => DropdownMenuItem(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) => setSheetState(() => toAccountId = value ?? ''),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: kindController,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: notesController,
-                  decoration: const InputDecoration(labelText: 'Notes'),
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final parsed = double.tryParse(amountController.text.trim());
-                      if (parsed == null || parsed <= 0) return;
-                      await ApiService.addTransfer(
-                        amount: (parsed * 100).round(),
-                        date: DateTime.now().toIso8601String().split('T').first,
-                        fromAccountId: fromAccountId.isEmpty ? null : fromAccountId,
-                        toAccountId: toAccountId.isEmpty ? null : toAccountId,
-                        currency: currency,
-                        kind: kindController.text.trim().isEmpty ? null : kindController.text.trim(),
-                        notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                      );
-                      ref.invalidate(accountsProvider);
-                      ref.invalidate(recentTransfersProvider);
-                      ref.invalidate(dashboardSummaryProvider);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    },
-                    child: const Text('Save transfer'),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: fromAccountId,
+                    decoration: const InputDecoration(labelText: 'From'),
+                    items: [
+                      const DropdownMenuItem(value: '', child: Text('External')),
+                      ...accounts.map(
+                        (account) => DropdownMenuItem(
+                          value: account.id,
+                          child: Text(account.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setSheetState(() => fromAccountId = value ?? ''),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: toAccountId,
+                    decoration: const InputDecoration(labelText: 'To'),
+                    items: [
+                      const DropdownMenuItem(value: '', child: Text('External')),
+                      ...accounts.map(
+                        (account) => DropdownMenuItem(
+                          value: account.id,
+                          child: Text(account.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) => setSheetState(() => toAccountId = value ?? ''),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: dateController,
+                    decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: kindController,
+                    decoration: const InputDecoration(labelText: 'Type'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: notesController,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final parsed = double.tryParse(amountController.text.trim());
+                        if (parsed == null || parsed <= 0) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Amount is required.')),
+                          );
+                          return;
+                        }
+                        if (fromAccountId.isEmpty && toAccountId.isEmpty) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Select a source or destination account.')),
+                          );
+                          return;
+                        }
+                        if (fromAccountId.isNotEmpty && fromAccountId == toAccountId) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(content: Text('Choose different source and destination accounts.')),
+                          );
+                          return;
+                        }
+                        if (editing) {
+                          await ApiService.updateTransfer(
+                            initialTransfer.id,
+                            amount: (parsed * 100).round(),
+                            date: dateController.text.trim(),
+                            fromAccountId: fromAccountId,
+                            toAccountId: toAccountId,
+                            currency: currency,
+                            kind: kindController.text.trim(),
+                            notes: notesController.text.trim(),
+                          );
+                        } else {
+                          await ApiService.addTransfer(
+                            amount: (parsed * 100).round(),
+                            date: dateController.text.trim(),
+                            fromAccountId: fromAccountId.isEmpty ? null : fromAccountId,
+                            toAccountId: toAccountId.isEmpty ? null : toAccountId,
+                            currency: currency,
+                            kind: kindController.text.trim().isEmpty
+                                ? null
+                                : kindController.text.trim(),
+                            notes: notesController.text.trim().isEmpty
+                                ? null
+                                : notesController.text.trim(),
+                          );
+                        }
+                        ref.invalidate(accountsProvider);
+                        ref.invalidate(recentTransfersProvider);
+                        ref.invalidate(dashboardSummaryProvider);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(editing ? 'Save changes' : 'Save transfer'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
+import { SectionHeader } from "@/components/finance/SectionHeader";
+import { SummaryCard } from "@/components/finance/SummaryCard";
 import { formatCents } from "@/lib/utils";
 import type {
   Expense,
@@ -16,7 +18,7 @@ import type {
   Category,
 } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { Trash2 } from "lucide-react";
+import { Pencil, ReceiptText, Trash2, Users } from "lucide-react";
 
 type SplitMode = "equal" | "exact" | "percentage";
 
@@ -35,6 +37,7 @@ export function GroupDetailPage() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [exactShares, setExactShares] = useState<Record<string, string>>({});
   const [pctShares, setPctShares] = useState<Record<string, string>>({});
@@ -112,7 +115,10 @@ export function GroupDetailPage() {
   };
 
   const invite = async () => {
-    if (!id || !inviteEmail) return;
+    if (!id || !inviteEmail.trim()) {
+      setError("Member email is required.");
+      return;
+    }
     setError("");
     try {
       await api(`/api/groups/${id}/members`, {
@@ -133,12 +139,12 @@ export function GroupDetailPage() {
       const cents = Math.round(parseFloat(amount) * 100);
       if (!title || !cents) throw new Error("Title and amount required");
       const splits = buildSplits(cents);
-      await api("/api/expenses", {
-        method: "POST",
+      await api(`/api/expenses${editingExpense ? `/${editingExpense.id}` : ""}`, {
+        method: editingExpense ? "PATCH" : "POST",
         body: JSON.stringify({
           title,
           amount: cents,
-          date: new Date().toISOString().split("T")[0],
+          date: editingExpense?.date ?? new Date().toISOString().split("T")[0],
           group_id: id,
           category_id: categoryId || null,
           payer_id: user?.id,
@@ -147,11 +153,38 @@ export function GroupDetailPage() {
       });
       setTitle("");
       setAmount("");
+      setCategoryId("");
+      setEditingExpense(null);
       setDebts(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to add expense");
     }
+  };
+
+  const startExpenseEdit = (expense: Expense) => {
+    setEditingExpense(expense);
+    setTitle(expense.title);
+    setAmount((expense.amount / 100).toFixed(2));
+    setCategoryId(expense.category_id ?? "");
+    setSplitMode("equal");
+    setSelected(
+      Object.fromEntries(members.map((member) => [member.user_id, true]))
+    );
+    setExactShares({});
+    setPctShares({});
+    setError("");
+  };
+
+  const cancelExpenseEdit = () => {
+    setEditingExpense(null);
+    setTitle("");
+    setAmount("");
+    setCategoryId("");
+    setSplitMode("equal");
+    setExactShares({});
+    setPctShares({});
+    setError("");
   };
 
   const removeExpense = async (expenseId: string) => {
@@ -192,18 +225,34 @@ export function GroupDetailPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-headline font-bold">{group.name}</h1>
-        <p className="text-secondary text-sm capitalize">
-          {group.type} · {members.length} members · {group.currency}
-        </p>
+      <SectionHeader
+        eyebrow={group.type}
+        title={group.name}
+        description="Track members, shared expenses, balances, and settlement activity for this group."
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <SummaryCard
+          title="Members"
+          value={String(members.length)}
+          subtitle="People currently included in this split."
+          icon={Users}
+          tone="neutral"
+        />
+        <SummaryCard
+          title="Expenses"
+          value={String(expenses.length)}
+          subtitle="Shared entries recorded for this group."
+          icon={ReceiptText}
+          tone="activity"
+        />
       </div>
 
-      <Card className="p-4 space-y-3">
-        <CardTitle>Add group expense</CardTitle>
+      <Card className="rounded-[28px] border border-outline/10 bg-white/88 p-6 space-y-4 shadow-ambient">
+        <CardTitle>{editingExpense ? "Edit group expense" : "Add group expense"}</CardTitle>
         <div className="grid md:grid-cols-4 gap-2">
-          <Input id="gtitle" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Input id="gamt" label="Amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <Input id="gtitle" label="Title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input id="gamt" label="Amount" required type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <Select
             id="gcat"
             label="Category"
@@ -213,7 +262,8 @@ export function GroupDetailPage() {
           />
           <Select
             id="gsplit"
-            label="Split"
+            label="Split mode"
+            required
             value={splitMode}
             onChange={(e) => setSplitMode(e.target.value as SplitMode)}
             options={[
@@ -257,15 +307,22 @@ export function GroupDetailPage() {
           </div>
         )}
         {error && <p className="text-xs text-error">{error}</p>}
-        <Button onClick={addExpense}>Add expense</Button>
+        <div className="flex gap-2">
+          <Button onClick={addExpense}>{editingExpense ? "Save changes" : "Add expense"}</Button>
+          {editingExpense && (
+            <Button variant="outline" onClick={cancelExpenseEdit}>
+              Cancel
+            </Button>
+          )}
+        </div>
       </Card>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] gap-8">
         <div className="space-y-4">
           <h2 className="font-bold">Group expenses</h2>
           {expenses.map((e) => (
-            <Card key={e.id} className="p-4 flex justify-between items-center gap-2">
-              <div>
+            <Card key={e.id} className="rounded-[24px] border border-outline/10 bg-white/88 p-5 flex justify-between items-center gap-3 shadow-sm">
+              <div className="min-w-0">
                 <p className="font-medium">{e.title}</p>
                 <p className="text-xs text-secondary">
                   {e.profiles?.full_name ?? "Unknown"} · {e.date}
@@ -275,6 +332,14 @@ export function GroupDetailPage() {
                 <span className="tabular-nums font-semibold">
                   {formatCents(e.amount, e.currency)}
                 </span>
+                <button
+                  type="button"
+                  aria-label="Edit"
+                  className="text-secondary hover:text-on-surface"
+                  onClick={() => startExpenseEdit(e)}
+                >
+                  <Pencil size={16} />
+                </button>
                 <button
                   type="button"
                   aria-label="Delete"
@@ -289,7 +354,7 @@ export function GroupDetailPage() {
           {expenses.length === 0 && <p className="text-secondary text-sm">No expenses yet</p>}
         </div>
         <div className="space-y-4">
-          <Card className="p-6">
+          <Card className="rounded-[28px] border border-outline/10 bg-white/88 p-6 shadow-ambient">
             <CardTitle className="mb-4">Members</CardTitle>
             <div className="space-y-3 mb-4">
               {members.map((m) => (
@@ -315,6 +380,7 @@ export function GroupDetailPage() {
             <Input
               id="invite"
               label="Invite by email"
+              required
               type="email"
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
@@ -323,7 +389,7 @@ export function GroupDetailPage() {
               Add member
             </Button>
           </Card>
-          <Card className="p-6">
+          <Card className="rounded-[28px] border border-outline/10 bg-white/88 p-6 shadow-ambient">
             <CardTitle className="mb-2">Settle up</CardTitle>
             <Button onClick={simplify} className="w-full">
               Calculate debts
@@ -349,7 +415,7 @@ export function GroupDetailPage() {
             )}
           </Card>
           {settlements.length > 0 && (
-            <Card className="p-6">
+            <Card className="rounded-[28px] border border-outline/10 bg-white/88 p-6 shadow-ambient">
               <CardTitle className="mb-3">Settlement history</CardTitle>
               <ul className="space-y-2 text-sm">
                 {settlements.map((s) => (
