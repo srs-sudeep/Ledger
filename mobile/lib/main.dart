@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quick_actions/quick_actions.dart';
 import 'providers/auth_notifier.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -23,7 +24,8 @@ class LedgerApp extends ConsumerStatefulWidget {
 
 class _LedgerAppState extends ConsumerState<LedgerApp> {
   StreamSubscription<Uri>? _linkSub;
-  bool _initializedLinks = false;
+  bool _initializedPlatformHooks = false;
+  final QuickActions _quickActions = const QuickActions();
 
   @override
   void dispose() {
@@ -35,9 +37,9 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
-    if (!_initializedLinks) {
-      _initializedLinks = true;
-      _initAppLinks(router);
+    if (!_initializedPlatformHooks) {
+      _initializedPlatformHooks = true;
+      _initPlatformHooks(router);
     }
 
     return MaterialApp.router(
@@ -48,7 +50,17 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
     );
   }
 
-  Future<void> _initAppLinks(GoRouter router) async {
+  Future<void> _initPlatformHooks(GoRouter router) async {
+    await _quickActions.initialize((shortcutType) {
+      _handleShortcut(router, shortcutType);
+    });
+    await _quickActions.setShortcutItems(const <ShortcutItem>[
+      ShortcutItem(type: 'quick_wallet', localizedTitle: 'Wallet payment'),
+      ShortcutItem(type: 'quick_paypay', localizedTitle: 'PayPay payment'),
+      ShortcutItem(type: 'quick_suica', localizedTitle: 'Suica payment'),
+      ShortcutItem(type: 'quick_cash', localizedTitle: 'Cash payment'),
+    ]);
+
     final appLinks = AppLinks();
     try {
       final initialUri = await appLinks.getInitialLink();
@@ -57,6 +69,18 @@ class _LedgerAppState extends ConsumerState<LedgerApp> {
     _linkSub = appLinks.uriLinkStream.listen((uri) {
       _handleIncomingUri(router, uri);
     });
+  }
+
+  void _handleShortcut(GoRouter router, String shortcutType) {
+    const routeByShortcut = <String, String>{
+      'quick_wallet': 'wallet',
+      'quick_paypay': 'paypay',
+      'quick_suica': 'suica',
+      'quick_cash': 'cash',
+    };
+    final source = routeByShortcut[shortcutType];
+    if (source == null) return;
+    router.go('/quick-add?source=$source');
   }
 
   void _handleIncomingUri(GoRouter router, Uri? uri) {
